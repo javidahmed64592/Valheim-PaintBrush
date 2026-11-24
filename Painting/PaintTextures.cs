@@ -234,7 +234,7 @@ internal static class PaintTextures
     /// glares in sunlight. Brightness up to <see cref="Knee"/> is kept; above it only <see cref="AboveKnee"/> of the
     /// rest counts, so white comes out like a light paint on wood rather than a lamp.
     /// </summary>
-    private static float Tame(PaintColor paint)
+    public static float Tame(PaintColor paint)
     {
         float luminance = (0.2126f * paint.R) + (0.7152f * paint.G) + (0.0722f * paint.B);
         return luminance <= Knee ? 1f : (Knee + ((luminance - Knee) * AboveKnee)) / luminance;

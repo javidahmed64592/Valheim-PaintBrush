@@ -73,6 +73,12 @@ internal static class BrushPrefabs
         ItemDrop.ItemData.SharedData shared = item.ItemDrop.m_itemData.m_shared;
         shared.m_useDurability = false;
         shared.m_canBeReparied = false;
+        BrushModel.Apply(item.ItemPrefab);
+        Sprite icon = ToolIcons.Paint();
+        if (icon != null)
+        {
+            shared.m_icons = [icon];
+        }
         _ = ItemManager.Instance.AddItem(item);
 
         AddTool(PaintToolName, "$paintbrush_piece_paint", "$paintbrush_piece_paint_description", ToolIcons.Paint());

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The brush has its own model, a flat paint brush whose bristle tip shows the colour you're painting with, instead of looking like a hammer.
+
 ## 0.1.0
 
 First release.

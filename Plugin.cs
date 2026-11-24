@@ -44,6 +44,7 @@ public class PaintBrushPlugin : BaseUnityPlugin
         Player player = Player.m_localPlayer;
         PhantomBrush.Update(player);
         BrushState.Sync(player);
+        BrushModel.Update(player);
         PaintPreview.Update(player);
         PaintedPieces.Update();
         PaintPanel.Update(player);
