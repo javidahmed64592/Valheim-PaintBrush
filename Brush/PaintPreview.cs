@@ -43,7 +43,14 @@ internal static class PaintPreview
         }
 
         LastAimed = _target;
-        PaintedPieces.SetPreview(_target, tool == BrushTool.Paint ? BrushState.Paint : PaintColor.None);
+
+        // The eyedropper shows the piece as it is.
+        PaintedPieces.SetPreview(_target, tool switch
+        {
+            BrushTool.Paint => BrushState.Paint,
+            BrushTool.Clear => PaintColor.None,
+            _ => null,
+        });
     }
 
     /// <summary>

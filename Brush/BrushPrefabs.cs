@@ -20,11 +20,17 @@ internal static class BrushPrefabs
     public const string TableName = "_PaintBrushPieceTable";
     public const string PaintToolName = "PaintBrush_Paint";
     public const string ClearToolName = "PaintBrush_Clear";
+    public const string PickToolName = "PaintBrush_Pick";
 
     private const string BaseItem = "Hammer";
     private const string BaseTool = "piece_repair";
 
     private static readonly List<Piece> Tools = [];
+
+    /// <summary>
+    /// The Paint tool's piece, which the eyedropper switches back to.
+    /// </summary>
+    public static Piece PaintTool => Tools.Count > 0 ? Tools[0] : null;
 
     public static void Register()
     {
@@ -84,6 +90,7 @@ internal static class BrushPrefabs
         PaintSplash.Create();
         AddTool(PaintToolName, "$paintbrush_piece_paint", "$paintbrush_piece_paint_description", ToolIcons.Paint());
         AddTool(ClearToolName, "$paintbrush_piece_clear", "$paintbrush_piece_clear_description", ToolIcons.Clear());
+        AddTool(PickToolName, "$paintbrush_piece_pick", "$paintbrush_piece_pick_description", ToolIcons.Pick());
     }
 
     private static void AddTool(string name, string displayName, string description, Sprite icon)

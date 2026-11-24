@@ -8,7 +8,7 @@ namespace PaintBrush.Brush;
 
 /// <summary>
 /// The brush tools' icons, drawn to match the mod icon: a flat brush part-way through painting a plank panel for
-/// Paint, and stripping one back to wood for Clear. They're SVGs in Icons/, rendered to the embedded PNGs by
+/// Paint, stripping one back to wood for Clear, and an eyedropper drawing paint from one for Pick. They're SVGs in Icons/, rendered to the embedded PNGs by
 /// Icons/render_icons.py.
 /// </summary>
 internal static class ToolIcons
@@ -30,6 +30,11 @@ internal static class ToolIcons
     public static Sprite Clear()
     {
         return Load("Clear");
+    }
+
+    public static Sprite Pick()
+    {
+        return Load("Pick");
     }
 
     private static Sprite Load(string name)

@@ -57,10 +57,15 @@ internal static class BrushKeyHints
             return;
         }
 
-        Set("Place", true, tool == BrushTool.Paint ? "$paintbrush_hint_paint" : "$paintbrush_hint_clear");
+        Set("Place", true, tool switch
+        {
+            BrushTool.Paint => "$paintbrush_hint_paint",
+            BrushTool.Clear => "$paintbrush_hint_clear",
+            _ => "$paintbrush_hint_pick",
+        });
         Set("Remove", false, null);
         Set("BuildMenu", true, "$paintbrush_hint_menu");
-        Set("AltPlace", false, null);
+        Set("AltPlace", tool == BrushTool.Pick, "$paintbrush_hint_pick_vanilla");
         Set("Snap", false, null);
         Set("Copy", false, null);
         Set("rotate", false, null);
