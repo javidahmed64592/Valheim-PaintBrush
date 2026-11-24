@@ -195,6 +195,7 @@ internal static class PaintedPieces
     /// </summary>
     public static void Update()
     {
+        PaintMaterials.FreeUnused();
         List<Piece> pieces = Piece.s_allPieces;
         if (pieces == null || pieces.Count == 0)
         {
