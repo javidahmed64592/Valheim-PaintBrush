@@ -1,3 +1,8 @@
+using System.Collections.Generic;
+using System.Globalization;
+
+using PaintBrush.Core;
+using PaintBrush.History;
 using PaintBrush.Painting;
 
 using UnityEngine;
@@ -80,13 +85,27 @@ internal static class BrushTools
 
         PaintColor paint = tool == BrushTool.Paint ? BrushState.Paint : PaintColor.None;
         PaintColor previous = PaintedPieces.StoredPaint(target);
-        if (previous == paint)
+        if (!Keys.Alt && previous == paint)
         {
             return true;
         }
 
-        PaintStore.Write(target.m_nview, paint);
-        PaintedPieces.OnPaintWritten(target, paint);
+        List<Piece> pieces = Keys.Alt ? Connected(player, target, paint) : [target];
+        if (pieces.Count == 0)
+        {
+            return true;
+        }
+
+        List<PaintHistory.Change> changes = [];
+        foreach (Piece piece in pieces)
+        {
+            PaintColor before = PaintedPieces.StoredPaint(piece);
+            changes.Add(new PaintHistory.Change(piece.m_nview.GetZDO().m_uid, before, paint));
+            PaintStore.Write(piece.m_nview, paint);
+            PaintedPieces.OnPaintWritten(piece, paint);
+        }
+
+        PaintHistory.Record(changes);
         if (!paint.IsNone)
         {
             BrushState.AddRecent();
@@ -100,6 +119,51 @@ internal static class BrushTools
     }
 
     /// <summary>
+    /// For Alt+Click: the aimed piece and every piece connected to it that the brush can paint, isn't behind
+    /// someone else's ward and would change. Says so when the search stopped at Max Connected Pieces, or when
+    /// warded pieces were left out.
+    /// </summary>
+    private static List<Piece> Connected(Player player, Piece target, PaintColor paint)
+    {
+        List<Piece> pieces = [];
+        int warded = 0;
+        List<Piece> found = ConnectedPieces.Find(target, out bool limited);
+        for (int i = 0; i < found.Count; i++)
+        {
+            Piece piece = found[i];
+            if (!PaintedPieces.CanPaint(piece) || PaintedPieces.StoredPaint(piece) == paint)
+            {
+                continue;
+            }
+
+            if (!PrivateArea.CheckAccess(piece.transform.position, 0f, flash: false))
+            {
+                warded++;
+                continue;
+            }
+
+            pieces.Add(piece);
+        }
+
+        string count = pieces.Count.ToString(CultureInfo.InvariantCulture);
+        string message = paint.IsNone ? "$paintbrush_msg_cleared_connected" : "$paintbrush_msg_painted_connected";
+        player.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize(message, count));
+        if (limited)
+        {
+            player.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize(
+                "$paintbrush_msg_connected_limit", ConnectedPieces.MaxPieces.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        if (warded > 0)
+        {
+            player.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize(
+                "$paintbrush_msg_connected_warded", warded.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        return pieces;
+    }
+
+    /// <summary>
     /// Takes the colour of a piece: its paint (colour and strength) if it's painted, otherwise, or with Shift held,
     /// its vanilla colour (the average of its texture, keeping the strength). Then goes back to the Paint tool.
     /// Only reads, so it works on any piece, wards or not.
@@ -107,7 +171,7 @@ internal static class BrushTools
     private static void Pick(Player player, Piece target)
     {
         PaintColor stored = PaintedPieces.StoredPaint(target);
-        bool vanilla = stored.IsNone || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        bool vanilla = stored.IsNone || Keys.Shift;
         Color32 color;
         if (vanilla)
         {
@@ -128,7 +192,7 @@ internal static class BrushTools
             BrushState.SetColor(color);
             BrushState.SetStrength(Mathf.RoundToInt(stored.Strength / 2.55f));
             player.Message(MessageHud.MessageType.TopLeft,
-                Localization.instance.Localize("$paintbrush_msg_picked", BrushState.ToHex(color), BrushState.Strength.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                Localization.instance.Localize("$paintbrush_msg_picked", BrushState.ToHex(color), BrushState.Strength.ToString(CultureInfo.InvariantCulture)));
         }
 
         Piece paint = BrushPrefabs.PaintTool;

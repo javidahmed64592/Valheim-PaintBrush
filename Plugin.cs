@@ -6,6 +6,7 @@ using Jotunn.Utils;
 
 using PaintBrush.Brush;
 using PaintBrush.Core;
+using PaintBrush.History;
 using PaintBrush.Painting;
 using PaintBrush.UI;
 
@@ -26,6 +27,8 @@ public class PaintBrushPlugin : BaseUnityPlugin
     {
         PhantomBrush.BindConfig(Config);
         PaintTextures.BindConfig(Config);
+        ConnectedPieces.BindConfig(Config);
+        PaintHistory.BindConfig(Config);
         Translations.Load();
         BrushPrefabs.Register();
 
@@ -45,6 +48,15 @@ public class PaintBrushPlugin : BaseUnityPlugin
         PhantomBrush.Update(player);
         BrushState.Sync(player);
         BrushModel.Update(player);
+        if (player == null)
+        {
+            PaintHistory.Reset();
+        }
+        else if (BrushTools.Selected(player) != BrushTool.None)
+        {
+            PaintHistory.UpdateKeys(player);
+        }
+
         PaintPreview.Update(player);
         PaintedPieces.Update();
         PaintPanel.Update(player);

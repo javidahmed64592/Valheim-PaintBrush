@@ -80,11 +80,12 @@ internal static class PaintSplash
     }
 
     /// <summary>
-    /// Splashes paint where the brush hit a piece, facing out of the surface.
+    /// Splashes paint where the brush hit a piece, facing out of the surface, with the sound unless told not to
+    /// (several splashes at once play it only once).
     /// </summary>
-    public static void Play(Vector3 point, Vector3 normal, PaintColor paint)
+    public static void Play(Vector3 point, Vector3 normal, PaintColor paint, bool sound = true)
     {
-        if (_sound != null)
+        if (sound && _sound != null)
         {
             _ = Object.Instantiate(_sound, point, Quaternion.identity);
         }

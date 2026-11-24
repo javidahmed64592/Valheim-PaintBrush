@@ -3,9 +3,9 @@ using BepInEx.Configuration;
 using Jotunn.Configs;
 using Jotunn.Managers;
 
+using PaintBrush.Core;
+
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace PaintBrush.Brush;
 
@@ -59,39 +59,10 @@ internal static class PhantomBrush
             player.UpdateKnownRecipesList();
         }
 
-        if (!InputBlocked() && ZInput.GetButtonDown(ButtonQueryName))
+        if (!Keys.Blocked() && ZInput.GetButtonDown(ButtonQueryName))
         {
             Toggle(player);
         }
-    }
-
-    private static bool InputBlocked()
-    {
-        return Menu.IsVisible()
-            || InventoryGui.IsVisible()
-            || (Chat.instance != null && Chat.instance.HasFocus())
-            || Console.IsVisible()
-            || TextInput.IsVisible()
-            || (Minimap.instance != null && Minimap.instance.m_mode == Minimap.MapMode.Large)
-            || TypingInField();
-    }
-
-    private static bool TypingInField()
-    {
-        GameObject selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
-        if (selected == null)
-        {
-            return false;
-        }
-
-        InputField field = selected.GetComponent<InputField>();
-        if (field != null && field.isFocused)
-        {
-            return true;
-        }
-
-        TMPro.TMP_InputField tmpField = selected.GetComponent<TMPro.TMP_InputField>();
-        return tmpField != null && tmpField.isFocused;
     }
 
     private static void Toggle(Player player)
