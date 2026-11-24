@@ -14,22 +14,24 @@ using UnityEngine.UI;
 namespace PaintBrush.UI;
 
 /// <summary>
-/// The colour picker inside the brush menu, below the tools: a saturation/value square and a hue bar, R, G, B and
+/// The colour picker inside the brush menu, above the tools: a saturation/value square and a hue bar, R, G, B and
 /// Strength sliders with number fields, a hex field, a preview of the last piece aimed at (vanilla and painted),
 /// the saved palette and the recent colours. It opens and closes with the menu, and every change applies at once.
 /// </summary>
 internal static class PaintPanel
 {
     private const float Width = 1004f;
-    private const float Height = 270f;
+    private const float Height = 262f;
 
     /// <summary>
-    /// Space between the row of tools and the panel.
+    /// Space between the panel and the tools below it.
     /// </summary>
-    private const float Gap = 18f;
+    private const float Gap = 14f;
 
-    private const float FallbackLeft = 30f;
-    private const float FallbackTop = 150f;
+    /// <summary>
+    /// How far the grid of tools is moved down to make room for the panel.
+    /// </summary>
+    private const float Shift = Height + Gap;
 
     private const float SquareSize = 250f;
     private const int SquareResolution = 64;
@@ -73,6 +75,8 @@ internal static class PaintPanel
     private static RawImage _vanilla;
     private static RawImage _painted;
 
+    private static RectTransform _shiftedView;
+
     private static int _shownVersion = -1;
     private static float _shownHue = -1f;
     private static Texture _shownSample;
@@ -93,6 +97,7 @@ internal static class PaintPanel
                 _root.gameObject.SetActive(false);
             }
 
+            ShiftGrid(null);
             SetBlocking(false);
             return;
         }
@@ -139,32 +144,45 @@ internal static class PaintPanel
     }
 
     /// <summary>
-    /// Lines the panel up under the tool buttons, at their left edge. The buttons are measured wherever they are, as
-    /// BetterHammer may lay the grid out in sections of its own.
+    /// Moves the grid of tools down by <see cref="Shift"/> while the brush menu is open, and back when it closes
+    /// (pass null). The move is relative, so it adds to whatever other mods (BetterHammer's toolbar) did to the grid.
+    /// </summary>
+    private static void ShiftGrid(RectTransform view)
+    {
+        if (_shiftedView == view)
+        {
+            return;
+        }
+
+        if (_shiftedView != null)
+        {
+            _shiftedView.offsetMax += new Vector2(0f, Shift);
+        }
+
+        _shiftedView = view;
+        if (view != null)
+        {
+            view.offsetMax -= new Vector2(0f, Shift);
+        }
+    }
+
+    /// <summary>
+    /// Puts the panel where the top of the grid was, before it moved down.
     /// </summary>
     private static void Position(BuildUi ui)
     {
-        RectTransform parent = (RectTransform)_root.parent;
-        Vector3[] corners = new Vector3[4];
-        float bottom = float.MaxValue;
-        float left = float.MaxValue;
-        foreach (BuildUiPieceButton button in ui.m_pieceButtons)
+        RectTransform view = ui.m_pieceView;
+        if (view == null)
         {
-            if (button == null || !button.gameObject.activeInHierarchy)
-            {
-                continue;
-            }
-
-            ((RectTransform)button.transform).GetWorldCorners(corners);
-            Vector3 local = parent.InverseTransformPoint(corners[0]);
-            bottom = Mathf.Min(bottom, local.y);
-            left = Mathf.Min(left, local.x);
+            return;
         }
 
-        // Without buttons (another mod hiding them), roughly where one row of tools would end.
-        _root.anchoredPosition = bottom < float.MaxValue
-            ? new Vector2(left - parent.rect.xMin, bottom - parent.rect.yMax - Gap)
-            : new Vector2(FallbackLeft, -FallbackTop);
+        ShiftGrid(view);
+        RectTransform parent = (RectTransform)_root.parent;
+        Vector3[] corners = new Vector3[4];
+        view.GetWorldCorners(corners);
+        Vector3 topLeft = parent.InverseTransformPoint(corners[1]);
+        _root.anchoredPosition = new Vector2(topLeft.x - parent.rect.xMin, topLeft.y - parent.rect.yMax + Shift);
     }
 
     private static void Refresh()

@@ -16,12 +16,23 @@ namespace PaintBrush.Painting;
 /// or clear, and puts the paint back if something else swapped a painted material (MaterialVariation picks a
 /// piece's material variant during its first second). The brush's preview is an override on top of the saved paint.
 /// </para>
+/// <para>
+/// Painted pieces also get a marker property through MaterialMan, which makes Valheim Performance Optimizations
+/// draw them normally instead of in its batches, which only know the vanilla materials.
+/// </para>
 /// </summary>
 internal static class PaintedPieces
 {
     private const int ChecksPerFrame = 300;
 
     private static readonly int MainTex = Shader.PropertyToID("_MainTex");
+
+    /// <summary>
+    /// A property no shader reads, set through MaterialMan on painted pieces. Renderers that draw pieces themselves
+    /// rather than through their MeshRenderers (Valheim Performance Optimizations' indirect renderer) fall back to
+    /// normal rendering for a piece with a property they don't know, so the painted materials show.
+    /// </summary>
+    private static readonly int PaintedFlag = Shader.PropertyToID("_PaintBrushPainted");
 
     /// <summary>
     /// Shaders whose materials are never painted: snow on top of pieces, glass, fire, water and so on.
@@ -53,6 +64,7 @@ internal static class PaintedPieces
         public PaintColor? Preview;
         public PaintColor Shown;
         public bool ShownIsPreview;
+        public bool Flagged;
         public readonly List<Slot> Slots = [];
     }
 
@@ -254,7 +266,26 @@ internal static class PaintedPieces
             PaintSlots(state, wanted, preview);
         }
 
+        SetFlag(state, state.Slots.Count > 0);
         Forget(state);
+    }
+
+    private static void SetFlag(State state, bool painted)
+    {
+        if (state.Flagged == painted || MaterialMan.instance == null || state.Piece == null)
+        {
+            return;
+        }
+
+        state.Flagged = painted;
+        if (painted)
+        {
+            MaterialMan.instance.SetValue(state.Piece.gameObject, PaintedFlag, 1f);
+        }
+        else
+        {
+            MaterialMan.instance.ResetValue(state.Piece.gameObject, PaintedFlag);
+        }
     }
 
     /// <summary>
