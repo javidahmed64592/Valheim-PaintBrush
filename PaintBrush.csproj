@@ -24,6 +24,7 @@
   <!-- Translations/<Language>.json, embedded and loaded by Translations.Load. -->
   <ItemGroup>
     <EmbeddedResource Include="Translations\*.json" LogicalName="PaintBrush.Translations.%(Filename).json" />
+    <EmbeddedResource Include="Icons\*.png" LogicalName="PaintBrush.Icons.%(Filename).png" />
   </ItemGroup>
 
   <!-- In CI (GitHub Actions) there is no local Valheim install, so game/BepInEx DLLs

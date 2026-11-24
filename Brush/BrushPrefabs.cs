@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Jotunn.Configs;
 using Jotunn.Entities;
 using Jotunn.Managers;
@@ -22,9 +24,27 @@ internal static class BrushPrefabs
     private const string BaseItem = "Hammer";
     private const string BaseTool = "piece_repair";
 
+    private static readonly List<Piece> Tools = [];
+
     public static void Register()
     {
         PrefabManager.OnVanillaPrefabsAvailable += Create;
+    }
+
+    /// <summary>
+    /// Vanilla puts Repair-type tools on a single button in the category list, which tools without tabs (like the
+    /// brush) don't show. While the menu builds its buttons the brush tools are ordinary pieces, so they go in the
+    /// grid; the rest of the time they're Repair tools again, which aim at built pieces without a ghost.
+    /// </summary>
+    public static void SetToolsAsRepair(bool repair)
+    {
+        foreach (Piece tool in Tools)
+        {
+            if (tool != null)
+            {
+                tool.m_repairPiece = repair;
+            }
+        }
     }
 
     public static bool IsBrushTable(PieceTable table)
@@ -72,5 +92,6 @@ internal static class BrushPrefabs
         piece.Piece.m_craftingStation = null;
         piece.Piece.m_repairPiece = true;
         _ = PieceManager.Instance.AddPiece(piece);
+        Tools.Add(piece.Piece);
     }
 }

@@ -28,6 +28,9 @@ internal static class PaintPanel
     /// </summary>
     private const float Gap = 18f;
 
+    private const float FallbackLeft = 30f;
+    private const float FallbackTop = 150f;
+
     private const float SquareSize = 250f;
     private const int SquareResolution = 64;
     private const int GradientResolution = 64;
@@ -163,10 +166,10 @@ internal static class PaintPanel
             left = Mathf.Min(left, local.x);
         }
 
-        if (bottom < float.MaxValue)
-        {
-            _root.anchoredPosition = new Vector2(left - parent.rect.xMin, bottom - parent.rect.yMax - Gap);
-        }
+        // Without buttons (another mod hiding them), roughly where one row of tools would end.
+        _root.anchoredPosition = bottom < float.MaxValue
+            ? new Vector2(left - parent.rect.xMin, bottom - parent.rect.yMax - Gap)
+            : new Vector2(FallbackLeft, -FallbackTop);
     }
 
     private static void Refresh()
