@@ -7,17 +7,14 @@ namespace PaintBrush.Painting;
 
 /// <summary>
 /// <para>
-/// Shows each piece's paint. A piece's renderers get the painted copy of their texture through a per-material
-/// property block, so the game's own shader still draws them, with its lighting, snow, rain and wear.
+/// Shows each piece's paint by giving its renderers painted copies of their materials (see
+/// <see cref="PaintMaterials"/>). The game's own shader still draws them, with its lighting, snow, rain, wear and
+/// hover highlight, which MaterialMan sets on top through a property block.
 /// </para>
 /// <para>
-/// Pieces are checked when they load, and then a few hundred a frame in turn, which picks up paint other players
-/// add or clear. The brush's preview is an override on top of the saved paint.
-/// </para>
-/// <para>
-/// The game's MaterialMan sets one property block on every renderer of a piece whenever it changes the hover
-/// highlight, snow or Ashlands damage, so the paint is put back each time it does (see
-/// <see cref="AfterMaterialManUpdate"/>).
+/// Pieces are checked when they load, and then a few hundred a frame in turn. That picks up paint other players add
+/// or clear, and puts the paint back if something else swapped a painted material (MaterialVariation picks a
+/// piece's material variant during its first second). The brush's preview is an override on top of the saved paint.
 /// </para>
 /// </summary>
 internal static class PaintedPieces
@@ -39,12 +36,12 @@ internal static class PaintedPieces
     {
         public Renderer Renderer;
         public int Index;
-        public Texture Source;
-        public Texture2D Texture;
+        public Material Original;
+        public Material Painted;
 
         /// <summary>
-        /// A counted texture from <see cref="PaintTextures.Acquire"/> (released when the slot is cleared), rather
-        /// than a preview.
+        /// A counted copy from <see cref="PaintMaterials.Acquire"/>, released when the slot is cleared, rather than
+        /// a preview.
         /// </summary>
         public bool Counted;
     }
@@ -67,12 +64,9 @@ internal static class PaintedPieces
     }
 
     private static readonly Dictionary<Piece, State> States = [];
-    private static readonly Dictionary<Renderer, List<Slot>> ByRenderer = [];
     private static readonly Dictionary<int, MaterialInfo> Materials = [];
     private static readonly List<Renderer> RendererBuffer = [];
-    private static readonly MaterialPropertyBlock Block = new();
     private static int _cursor;
-    private static bool _nullClearFails;
 
     /// <summary>
     /// The paint a piece has saved, or None.
@@ -111,7 +105,7 @@ internal static class PaintedPieces
         {
             foreach (Material material in renderer.sharedMaterials)
             {
-                MaterialInfo info = Info(material);
+                MaterialInfo info = Info(PaintMaterials.Original(material));
                 if (info.Paintable)
                 {
                     texture = info.Texture;
@@ -184,7 +178,8 @@ internal static class PaintedPieces
     }
 
     /// <summary>
-    /// Checks a few hundred pieces a frame for paint changed by other players.
+    /// Checks a few hundred pieces a frame for paint changed by other players, and painted materials swapped by
+    /// something else.
     /// </summary>
     public static void Update()
     {
@@ -210,39 +205,15 @@ internal static class PaintedPieces
 
             PaintColor stored = StoredPaint(piece);
             bool known = States.TryGetValue(piece, out State state);
-            if (known ? state.Stored == stored : stored.IsNone)
+            if (known ? state.Stored != stored : !stored.IsNone)
             {
-                continue;
+                state ??= GetState(piece);
+                state.Stored = stored;
+                Refresh(state);
             }
-
-            state ??= GetState(piece);
-            state.Stored = stored;
-            Refresh(state);
-        }
-    }
-
-    /// <summary>
-    /// Called after MaterialMan set its property block on a piece's renderers: puts the paint back on top, in a
-    /// per-material block holding MaterialMan's values as well, so the highlight and snow still show.
-    /// </summary>
-    public static void AfterMaterialManUpdate(List<Renderer> renderers, MaterialPropertyBlock block)
-    {
-        if (ByRenderer.Count == 0 || renderers == null || block == null)
-        {
-            return;
-        }
-
-        foreach (Renderer renderer in renderers)
-        {
-            if (renderer == null || !ByRenderer.TryGetValue(renderer, out List<Slot> slots))
+            else if (known && !SlotsIntact(state))
             {
-                continue;
-            }
-
-            foreach (Slot slot in slots)
-            {
-                block.SetTexture(MainTex, slot.Texture);
-                renderer.SetPropertyBlock(block, slot.Index);
+                Repaint(state);
             }
         }
     }
@@ -268,6 +239,13 @@ internal static class PaintedPieces
             return;
         }
 
+        Repaint(state);
+    }
+
+    private static void Repaint(State state)
+    {
+        PaintColor wanted = state.Preview ?? state.Stored;
+        bool preview = state.Preview.HasValue;
         ClearSlots(state);
         state.Shown = wanted;
         state.ShownIsPreview = preview;
@@ -290,98 +268,90 @@ internal static class PaintedPieces
         }
     }
 
+    /// <summary>
+    /// Whether every painted material is still on its renderer.
+    /// </summary>
+    private static bool SlotsIntact(State state)
+    {
+        foreach (Slot slot in state.Slots)
+        {
+            if (slot.Renderer == null)
+            {
+                continue;
+            }
+
+            Material[] materials = slot.Renderer.sharedMaterials;
+            if (slot.Index >= materials.Length || materials[slot.Index] != slot.Painted)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static void PaintSlots(State state, PaintColor paint, bool preview)
     {
         GatherRenderers(state.Piece);
         foreach (Renderer renderer in RendererBuffer)
         {
             Material[] materials = renderer.sharedMaterials;
+            bool changed = false;
             for (int index = 0; index < materials.Length; index++)
             {
-                MaterialInfo info = Info(materials[index]);
+                Material original = PaintMaterials.Original(materials[index]);
+                MaterialInfo info = Info(original);
                 if (!info.Paintable)
                 {
                     continue;
                 }
 
-                Texture2D texture = preview
-                    ? PaintTextures.GetPreview(info.Texture, info.Cutout, paint)
-                    : PaintTextures.Acquire(info.Texture, info.Cutout, paint);
-                Slot slot = new()
+                Material painted = preview
+                    ? PaintMaterials.Preview(original, info.Texture, info.Cutout, paint)
+                    : PaintMaterials.Acquire(original, info.Texture, info.Cutout, paint);
+                state.Slots.Add(new Slot
                 {
                     Renderer = renderer,
                     Index = index,
-                    Source = info.Texture,
-                    Texture = texture,
+                    Original = original,
+                    Painted = painted,
                     Counted = !preview,
-                };
-                state.Slots.Add(slot);
+                });
+                materials[index] = painted;
+                changed = true;
+            }
 
-                if (!ByRenderer.TryGetValue(renderer, out List<Slot> slots))
-                {
-                    slots = [];
-                    ByRenderer[renderer] = slots;
-                }
-
-                slots.Add(slot);
-
-                // Starts from the block MaterialMan last set, so its values stay.
-                renderer.GetPropertyBlock(Block);
-                Block.SetTexture(MainTex, texture);
-                renderer.SetPropertyBlock(Block, index);
+            if (changed)
+            {
+                renderer.sharedMaterials = materials;
             }
         }
     }
 
+    /// <summary>
+    /// Puts the original materials back (where the painted ones are still on) and releases the painted copies.
+    /// </summary>
     private static void ClearSlots(State state)
     {
         foreach (Slot slot in state.Slots)
         {
-            // Unity objects hash by instance id, so a destroyed renderer's entry still comes out.
-            if (ByRenderer.TryGetValue(slot.Renderer, out List<Slot> slots))
-            {
-                _ = slots.Remove(slot);
-                if (slots.Count == 0)
-                {
-                    _ = ByRenderer.Remove(slot.Renderer);
-                }
-            }
-
             if (slot.Renderer != null)
             {
-                ClearBlock(slot.Renderer, slot.Index);
+                Material[] materials = slot.Renderer.sharedMaterials;
+                if (slot.Index < materials.Length && PaintMaterials.IsCopy(materials[slot.Index]))
+                {
+                    materials[slot.Index] = slot.Original;
+                    slot.Renderer.sharedMaterials = materials;
+                }
             }
 
             if (slot.Counted)
             {
-                PaintTextures.Release(slot.Source, state.Shown);
+                PaintMaterials.Release(slot.Original, state.Shown);
             }
         }
 
         state.Slots.Clear();
-    }
-
-    /// <summary>
-    /// Removes the per-material block, so the material shows its own texture again.
-    /// </summary>
-    private static void ClearBlock(Renderer renderer, int index)
-    {
-        if (!_nullClearFails)
-        {
-            try
-            {
-                renderer.SetPropertyBlock(null, index);
-                return;
-            }
-            catch (Exception e)
-            {
-                _nullClearFails = true;
-                Jotunn.Logger.LogWarning("Clearing a per-material block failed, using the renderer's block instead: " + e.Message);
-            }
-        }
-
-        renderer.GetPropertyBlock(Block);
-        renderer.SetPropertyBlock(Block, index);
     }
 
     private static void GatherRenderers(Piece piece)

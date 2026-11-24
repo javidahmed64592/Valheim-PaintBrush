@@ -139,28 +139,23 @@ internal static class PaintPanel
     }
 
     /// <summary>
-    /// Lines the panel up under the row of tools, at the grid's left edge.
+    /// Lines the panel up under the tool buttons, at their left edge. The buttons are measured wherever they are, as
+    /// BetterHammer may lay the grid out in sections of its own.
     /// </summary>
     private static void Position(BuildUi ui)
     {
-        RectTransform container = ui.m_pieceButtonsContainer;
         RectTransform parent = (RectTransform)_root.parent;
-        if (container == null)
-        {
-            return;
-        }
-
         Vector3[] corners = new Vector3[4];
         float bottom = float.MaxValue;
         float left = float.MaxValue;
-        foreach (Transform child in container)
+        foreach (BuildUiPieceButton button in ui.m_pieceButtons)
         {
-            if (!child.gameObject.activeSelf || child is not RectTransform rect)
+            if (button == null || !button.gameObject.activeInHierarchy)
             {
                 continue;
             }
 
-            rect.GetWorldCorners(corners);
+            ((RectTransform)button.transform).GetWorldCorners(corners);
             Vector3 local = parent.InverseTransformPoint(corners[0]);
             bottom = Mathf.Min(bottom, local.y);
             left = Mathf.Min(left, local.x);
