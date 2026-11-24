@@ -23,5 +23,18 @@
   "paintbrush_msg_cannot_paint": "Only pieces built by players can be painted",
   "paintbrush_msg_cannot_pick": "This piece has no colour to pick",
   "paintbrush_msg_picked": "Picked #$1 at $2%",
-  "paintbrush_msg_picked_vanilla": "Picked the vanilla colour #$1"
+  "paintbrush_msg_picked_vanilla": "Picked the vanilla colour #$1",
+  "paintbrush_hint_paint_connected": "Paint connected pieces",
+  "paintbrush_hint_clear_connected": "Clear connected pieces",
+  "paintbrush_hint_undo": "Undo",
+  "paintbrush_hint_redo": "Redo",
+  "paintbrush_msg_painted_connected": "Painted $1 connected pieces",
+  "paintbrush_msg_cleared_connected": "Cleared $1 connected pieces",
+  "paintbrush_msg_connected_limit": "Stopped at $1 pieces (Max Connected Pieces)",
+  "paintbrush_msg_connected_warded": "Left out $1 pieces behind wards",
+  "paintbrush_msg_undone": "Undid painting $1 pieces",
+  "paintbrush_msg_redone": "Redid painting $1 pieces",
+  "paintbrush_msg_undo_nothing": "Nothing to undo",
+  "paintbrush_msg_redo_nothing": "Nothing to redo",
+  "paintbrush_msg_undo_too_far": "Those pieces are gone or too far away"
 }

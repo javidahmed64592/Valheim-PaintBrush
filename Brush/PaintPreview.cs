@@ -1,16 +1,21 @@
+using System.Collections.Generic;
+
+using PaintBrush.Core;
 using PaintBrush.Painting;
 
 namespace PaintBrush.Brush;
 
 /// <summary>
 /// Shows the piece under the brush as it would look: with the Paint tool in the current colour, with the Clear
-/// tool as vanilla. Moving away puts its saved paint back. Also remembers the last piece aimed at, whose texture
-/// the menu's preview uses.
+/// tool as vanilla; with Alt held, every connected piece too. Moving away puts the saved paint back. Also
+/// remembers the last piece aimed at, whose texture the menu's preview uses.
 /// </summary>
 internal static class PaintPreview
 {
+    private static readonly List<Piece> Group = [];
     private static Piece _target;
     private static BrushTool _tool;
+    private static bool _connected;
 
     /// <summary>
     /// The last paintable piece the brush was aimed at, or null.
@@ -26,14 +31,27 @@ internal static class PaintPreview
             hovered = null;
         }
 
-        if (hovered != _target)
+        // Holding Alt with Paint or Clear previews every connected piece the click would change.
+        bool connected = hovered != null && tool is BrushTool.Paint or BrushTool.Clear && Keys.Alt;
+        if (hovered != _target || connected != _connected || tool != _tool)
         {
-            if (_target != null)
-            {
-                PaintedPieces.SetPreview(_target, null);
-            }
-
+            ClearGroup();
             _target = hovered;
+            _connected = connected;
+            if (connected)
+            {
+                foreach (Piece piece in ConnectedPieces.Find(hovered, out _))
+                {
+                    if (PaintedPieces.CanPaint(piece) && PrivateArea.CheckAccess(piece.transform.position, 0f, flash: false))
+                    {
+                        Group.Add(piece);
+                    }
+                }
+            }
+            else if (hovered != null)
+            {
+                Group.Add(hovered);
+            }
         }
 
         _tool = tool;
@@ -45,12 +63,26 @@ internal static class PaintPreview
         LastAimed = _target;
 
         // The eyedropper shows the piece as it is.
-        PaintedPieces.SetPreview(_target, tool switch
+        PaintColor? preview = tool switch
         {
             BrushTool.Paint => BrushState.Paint,
             BrushTool.Clear => PaintColor.None,
             _ => null,
-        });
+        };
+        foreach (Piece piece in Group)
+        {
+            PaintedPieces.SetPreview(piece, preview);
+        }
+    }
+
+    private static void ClearGroup()
+    {
+        foreach (Piece piece in Group)
+        {
+            PaintedPieces.SetPreview(piece, null);
+        }
+
+        Group.Clear();
     }
 
     /// <summary>
