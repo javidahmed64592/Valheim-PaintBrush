@@ -81,6 +81,7 @@ internal static class BrushPrefabs
         }
         _ = ItemManager.Instance.AddItem(item);
 
+        PaintSplash.Create();
         AddTool(PaintToolName, "$paintbrush_piece_paint", "$paintbrush_piece_paint_description", ToolIcons.Paint());
         AddTool(ClearToolName, "$paintbrush_piece_clear", "$paintbrush_piece_clear_description", ToolIcons.Clear());
     }
