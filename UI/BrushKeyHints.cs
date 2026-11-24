@@ -10,7 +10,8 @@ namespace PaintBrush.UI;
 
 /// <summary>
 /// The key hints while the brush is out: vanilla's build hint row, with Place relabelled for the selected tool and
-/// the build menu hint renamed, and the hints that do nothing with the brush (remove, snap, copy, rotate) hidden.
+/// the build menu hint renamed, and the hints that do nothing with the brush (remove, snap, copy, rotate, favourite)
+/// hidden.
 /// Everything is put back when the brush is put away.
 /// </summary>
 internal static class BrushKeyHints
@@ -23,7 +24,7 @@ internal static class BrushKeyHints
         public bool Changed;
     }
 
-    private static readonly string[] VanillaNames = ["Place", "Remove", "BuildMenu", "AltPlace", "Snap", "Copy", "rotate"];
+    private static readonly string[] VanillaNames = ["Place", "Remove", "BuildMenu", "AltPlace", "Snap", "Copy", "rotate", "Favorite"];
     private static readonly Dictionary<string, VanillaHint> Vanilla = [];
     private static Transform _keyboard;
 
@@ -63,6 +64,7 @@ internal static class BrushKeyHints
         Set("Snap", false, null);
         Set("Copy", false, null);
         Set("rotate", false, null);
+        Set("Favorite", false, null);
     }
 
     private static bool Find(KeyHints keyHints)
