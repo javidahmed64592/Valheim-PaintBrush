@@ -8,13 +8,14 @@ namespace PaintBrush.Brush;
 
 /// <summary>
 /// The splash where the brush hits a piece: vanilla's blood hit effect (a wet splash, flying drops and a splat
-/// left on the surface), recoloured with the paint, and the squelch of a hit blob. Painting splashes the new
+/// left on the surface), recoloured with the paint, and the short scrape the hoe makes painting the ground: about
+/// 10 dB quieter than the blood's slime splat, and a dab rather than a slosh. Painting splashes the new
 /// colour; clearing splashes the colour being removed.
 /// </summary>
 internal static class PaintSplash
 {
     private const string BaseEffect = "vfx_BloodHit";
-    private const string SoundName = "sfx_blob_hit";
+    private const string SoundName = "sfx_build_hoe";
     private const string SplashName = "PaintBrush_Splash";
 
     private static readonly int ColorId = Shader.PropertyToID("_Color");
