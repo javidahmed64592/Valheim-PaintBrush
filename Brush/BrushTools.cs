@@ -9,6 +9,7 @@ internal enum BrushTool
     None = 0,
     Paint = 1,
     Clear = 2,
+    Pick = 3,
 }
 
 /// <summary>
@@ -37,6 +38,7 @@ internal static class BrushTools
             {
                 BrushPrefabs.PaintToolName => BrushTool.Paint,
                 BrushPrefabs.ClearToolName => BrushTool.Clear,
+                BrushPrefabs.PickToolName => BrushTool.Pick,
                 _ => BrushTool.None,
             };
     }
@@ -56,6 +58,12 @@ internal static class BrushTools
         Piece target = player.GetHoveringPiece();
         if (target == null)
         {
+            return true;
+        }
+
+        if (tool == BrushTool.Pick)
+        {
+            Pick(player, target);
             return true;
         }
 
@@ -89,6 +97,45 @@ internal static class BrushTools
         Aim(player, target, out Vector3 point, out Vector3 normal);
         PaintSplash.Play(point, normal, paint.IsNone ? previous : paint);
         return true;
+    }
+
+    /// <summary>
+    /// Takes the colour of a piece: its paint (colour and strength) if it's painted, otherwise, or with Shift held,
+    /// its vanilla colour (the average of its texture, keeping the strength). Then goes back to the Paint tool.
+    /// Only reads, so it works on any piece, wards or not.
+    /// </summary>
+    private static void Pick(Player player, Piece target)
+    {
+        PaintColor stored = PaintedPieces.StoredPaint(target);
+        bool vanilla = stored.IsNone || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        Color32 color;
+        if (vanilla)
+        {
+            if (!PaintedPieces.SampleTexture(target, out Texture texture, out bool cutout))
+            {
+                player.Message(MessageHud.MessageType.Center, "$paintbrush_msg_cannot_pick");
+                return;
+            }
+
+            color = PaintTextures.AverageColor(texture, cutout);
+            BrushState.SetColor(color);
+            player.Message(MessageHud.MessageType.TopLeft,
+                Localization.instance.Localize("$paintbrush_msg_picked_vanilla", BrushState.ToHex(color)));
+        }
+        else
+        {
+            color = stored.Color;
+            BrushState.SetColor(color);
+            BrushState.SetStrength(Mathf.RoundToInt(stored.Strength / 2.55f));
+            player.Message(MessageHud.MessageType.TopLeft,
+                Localization.instance.Localize("$paintbrush_msg_picked", BrushState.ToHex(color), BrushState.Strength.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+
+        Piece paint = BrushPrefabs.PaintTool;
+        if (paint != null)
+        {
+            _ = player.SetSelectedPiece(paint);
+        }
     }
 
     /// <summary>

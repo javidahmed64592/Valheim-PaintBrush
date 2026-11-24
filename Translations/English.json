@@ -6,8 +6,12 @@
   "paintbrush_piece_paint_description": "Paints the piece you aim at.",
   "paintbrush_piece_clear": "Clear paint",
   "paintbrush_piece_clear_description": "Removes the paint from the piece you aim at.",
+  "paintbrush_piece_pick": "Pick colour",
+  "paintbrush_piece_pick_description": "Takes the colour of the piece you aim at.",
   "paintbrush_hint_paint": "Paint",
   "paintbrush_hint_clear": "Clear paint",
+  "paintbrush_hint_pick": "Pick colour",
+  "paintbrush_hint_pick_vanilla": "Pick vanilla colour",
   "paintbrush_hint_menu": "Brush menu",
   "paintbrush_panel_strength": "Strength",
   "paintbrush_panel_hex": "Hex",
@@ -16,5 +20,8 @@
   "paintbrush_panel_palette": "Palette",
   "paintbrush_panel_recent": "Recent",
   "paintbrush_panel_hint": "Shift+Click a palette slot to save, Right-Click to empty it.",
-  "paintbrush_msg_cannot_paint": "Only pieces built by players can be painted"
+  "paintbrush_msg_cannot_paint": "Only pieces built by players can be painted",
+  "paintbrush_msg_cannot_pick": "This piece has no colour to pick",
+  "paintbrush_msg_picked": "Picked #$1 at $2%",
+  "paintbrush_msg_picked_vanilla": "Picked the vanilla colour #$1"
 }

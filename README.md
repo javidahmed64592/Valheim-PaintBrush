@@ -9,6 +9,7 @@ Paint your buildings: a paint brush, taken out with one key, colours built piece
 - **Paint brush:** press `O` to take out the brush, and again to put it away. It doesn't need to be crafted or carried.
 - **Paint and Clear paint:** aim at a piece you or another player built and click. The piece shows the result while you aim at it, so you see the colour before you commit.
 - **Colour picker:** right-click opens the brush menu, with a colour square and hue bar, R, G and B sliders, a hex field, a 16-colour palette and your recent colours.
+- **Pick colour:** an eyedropper that takes the colour of any piece: its paint if it's painted, or its vanilla colour.
 - **Strength:** blends between the piece's own colour and the paint. The wood grain or stone texture stays visible at any strength, and dark pieces can still be painted light.
 
 ## Controls
@@ -17,6 +18,8 @@ Paint your buildings: a paint brush, taken out with one key, colours built piece
 |---|---|
 | Take out or put away the brush | `O` |
 | Paint, or clear paint | Left-Click on a piece |
+| Pick a piece's paint (or vanilla colour if unpainted) | Left-Click with Pick colour |
+| Pick a piece's vanilla colour | Shift+Left-Click with Pick colour |
 | Open the brush menu | Right-Click |
 | Use a palette or recent colour | Click the swatch |
 | Save the current colour to the palette | Shift+Click a palette slot |
