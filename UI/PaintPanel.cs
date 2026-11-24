@@ -21,12 +21,12 @@ namespace PaintBrush.UI;
 internal static class PaintPanel
 {
     private const float Width = 1004f;
-    private const float Height = 262f;
+    private const float Height = 272f;
 
     /// <summary>
     /// Space between the panel and the tools below it.
     /// </summary>
-    private const float Gap = 14f;
+    private const float Gap = 18f;
 
     /// <summary>
     /// How far the grid of tools is moved down to make room for the panel.
@@ -377,8 +377,7 @@ internal static class PaintPanel
         _current.raycastTarget = false;
         Swatch.Style(_current.gameObject.AddComponent<Outline>());
 
-        Text hint = Label(_root, "$paintbrush_panel_hint", x, 232f, 358f, 40f, TextColor, 14);
-        hint.alignment = TextAnchor.UpperLeft;
+        _ = Label(_root, "$paintbrush_panel_hint", x, 232f, 358f, 24f, TextColor, 14);
     }
 
     private static void AddRow(string label, float y, int max, Func<int> get, Action<int> set, Func<float, Color> colorAt)

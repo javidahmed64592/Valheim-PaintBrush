@@ -24,6 +24,22 @@ internal static class PaintTextures
     private const int SourceCacheSize = 8;
 
     /// <summary>
+    /// Paint brightness (0-255) kept as chosen; see <see cref="Tame"/>.
+    /// </summary>
+    private const float Knee = 110f;
+
+    /// <summary>
+    /// How much of a paint's brightness above <see cref="Knee"/> is kept.
+    /// </summary>
+    private const float AboveKnee = 0.4f;
+
+    /// <summary>
+    /// The most a pixel's brightness, relative to the texture's average, scales the paint: keeps the grain's light
+    /// streaks from turning into pure white.
+    /// </summary>
+    private const float MaxRelative = 1.6f;
+
+    /// <summary>
     /// A texture's pixels at a given size, read back from the graphics card once and kept for a while.
     /// </summary>
     private sealed class Source
@@ -188,17 +204,18 @@ internal static class PaintTextures
 
         float strength = paint.Strength / 255f;
         float keep = 1f - strength;
-        float r = paint.R * strength;
-        float g = paint.G * strength;
-        float b = paint.B * strength;
+        float tame = Tame(paint);
+        float r = paint.R * tame * strength;
+        float g = paint.G * tame * strength;
+        float b = paint.B * tame * strength;
         float inverse = source.InverseAverage;
         for (int i = 0; i < pixels.Length; i++)
         {
             Color32 pixel = pixels[i];
             float relative = Luminance(pixel) * inverse;
-            if (relative > 3f)
+            if (relative > MaxRelative)
             {
-                relative = 3f;
+                relative = MaxRelative;
             }
 
             result[i] = new Color32(
@@ -209,6 +226,18 @@ internal static class PaintTextures
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Scales a paint down when it's lighter than vanilla textures get. Valheim's lighting is tuned for textures
+    /// that are fairly dark (wood and stone average around 30-50% brightness), so a white paint taken as it is
+    /// glares in sunlight. Brightness up to <see cref="Knee"/> is kept; above it only <see cref="AboveKnee"/> of the
+    /// rest counts, so white comes out like a light paint on wood rather than a lamp.
+    /// </summary>
+    private static float Tame(PaintColor paint)
+    {
+        float luminance = (0.2126f * paint.R) + (0.7152f * paint.G) + (0.0722f * paint.B);
+        return luminance <= Knee ? 1f : (Knee + ((luminance - Knee) * AboveKnee)) / luminance;
     }
 
     private static byte ToByte(float value)

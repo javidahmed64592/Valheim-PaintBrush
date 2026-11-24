@@ -15,6 +15,6 @@
   "paintbrush_panel_painted": "Painted",
   "paintbrush_panel_palette": "Palette",
   "paintbrush_panel_recent": "Recent",
-  "paintbrush_panel_hint": "Click a swatch to use its colour. Shift+Click a palette slot to save the current colour there, right-click to empty it.",
+  "paintbrush_panel_hint": "Shift+Click a palette slot to save, Right-Click to empty it.",
   "paintbrush_msg_cannot_paint": "Only pieces built by players can be painted"
 }
