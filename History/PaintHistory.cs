@@ -3,6 +3,7 @@ using System.Globalization;
 
 using BepInEx.Configuration;
 
+using PaintBrush.Brush;
 using PaintBrush.Core;
 using PaintBrush.Painting;
 
@@ -16,6 +17,11 @@ namespace PaintBrush.History;
 /// be loaded are left out; if any piece is behind someone else's ward, nothing changes. The history lasts until
 /// logging out.
 /// </summary>
+/// <remarks>
+/// Undoing and redoing look and sound like painting: the brush swings, and the pieces splash with the paint they
+/// get back (or, when it's taken off, the paint being removed), as BetterHammer and BetterHoe replay their tools.
+/// Only the nearest <see cref="MaxSplashes"/> pieces splash, so undoing a whole building doesn't flood the screen.
+/// </remarks>
 internal static class PaintHistory
 {
     internal readonly struct Change(ZDOID piece, PaintColor before, PaintColor after)
@@ -24,6 +30,8 @@ internal static class PaintHistory
         public readonly PaintColor Before = before;
         public readonly PaintColor After = after;
     }
+
+    private const int MaxSplashes = 12;
 
     private static ConfigEntry<KeyboardShortcut> _undoKey;
     private static ConfigEntry<KeyboardShortcut> _redoKey;
@@ -91,6 +99,30 @@ internal static class PaintHistory
         }
     }
 
+    /// <summary>
+    /// Swings the brush and splashes the nearest changed pieces, on the side facing the player.
+    /// </summary>
+    private static void Replay(Player player, List<(Piece Piece, PaintColor Paint, PaintColor Old)> targets)
+    {
+        ItemDrop.ItemData brush = player.GetRightItem();
+        if (brush != null)
+        {
+            player.m_zanim.SetTrigger(brush.m_shared.m_attack.m_attackAnimation);
+        }
+
+        Vector3 eye = player.m_eye != null ? player.m_eye.position : player.transform.position;
+        targets.Sort((a, b) => (a.Piece.transform.position - eye).sqrMagnitude.CompareTo((b.Piece.transform.position - eye).sqrMagnitude));
+        int splashes = Mathf.Min(MaxSplashes, targets.Count);
+        for (int i = 0; i < splashes; i++)
+        {
+            (Piece piece, PaintColor paint, PaintColor old) = targets[i];
+            Collider collider = piece.GetComponentInChildren<Collider>();
+            Vector3 point = collider != null ? collider.ClosestPointOnBounds(eye) : piece.transform.position;
+            Vector3 normal = eye - point;
+            PaintSplash.Play(point, normal.sqrMagnitude > 0.0001f ? normal.normalized : Vector3.up, paint.IsNone ? old : paint, sound: i == 0);
+        }
+    }
+
     private static void Step(Player player, bool undo)
     {
         if (undo ? Undos.Count == 0 : Redos.Count == 0)
@@ -102,7 +134,7 @@ internal static class PaintHistory
         List<Change> changes = undo ? Undos.Last.Value : Redos.Peek();
 
         // Every loaded piece must be accessible before anything changes.
-        List<(Piece Piece, PaintColor Paint)> targets = [];
+        List<(Piece Piece, PaintColor Paint, PaintColor Old)> targets = [];
         foreach (Change change in changes)
         {
             GameObject instance = ZNetScene.instance != null ? ZNetScene.instance.FindInstance(change.Piece) : null;
@@ -117,7 +149,7 @@ internal static class PaintHistory
                 return;
             }
 
-            targets.Add((piece, undo ? change.Before : change.After));
+            targets.Add(undo ? (piece, change.Before, change.After) : (piece, change.After, change.Before));
         }
 
         if (targets.Count == 0)
@@ -126,11 +158,13 @@ internal static class PaintHistory
             return;
         }
 
-        foreach ((Piece piece, PaintColor paint) in targets)
+        foreach ((Piece piece, PaintColor paint, PaintColor _) in targets)
         {
             PaintStore.Write(piece.m_nview, paint);
             PaintedPieces.OnPaintWritten(piece, paint);
         }
+
+        Replay(player, targets);
 
         if (undo)
         {
