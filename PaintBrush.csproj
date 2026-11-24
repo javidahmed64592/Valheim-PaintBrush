@@ -81,6 +81,10 @@
       <HintPath>$(ManagedDir)/Newtonsoft.Json.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>$(ManagedDir)/UnityEngine.ParticleSystemModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>$(ManagedDir)/UnityEngine.PhysicsModule.dll</HintPath>
       <Private>false</Private>

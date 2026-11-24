@@ -1,5 +1,7 @@
 using PaintBrush.Painting;
 
+using UnityEngine;
+
 namespace PaintBrush.Brush;
 
 internal enum BrushTool
@@ -69,7 +71,8 @@ internal static class BrushTools
         }
 
         PaintColor paint = tool == BrushTool.Paint ? BrushState.Paint : PaintColor.None;
-        if (PaintedPieces.StoredPaint(target) == paint)
+        PaintColor previous = PaintedPieces.StoredPaint(target);
+        if (previous == paint)
         {
             return true;
         }
@@ -83,7 +86,28 @@ internal static class BrushTools
 
         player.FaceLookDirection();
         player.m_zanim.SetTrigger(toolItem.m_shared.m_attack.m_attackAnimation);
-        _ = target.m_placeEffect.Create(target.transform.position, target.transform.rotation);
+        Aim(player, target, out Vector3 point, out Vector3 normal);
+        PaintSplash.Play(point, normal, paint.IsNone ? previous : paint);
         return true;
+    }
+
+    /// <summary>
+    /// Where the player is aiming on the piece, found the way the game finds the piece under a build tool; the
+    /// piece's centre, facing the camera, if the ray doesn't hit it.
+    /// </summary>
+    private static void Aim(Player player, Piece target, out Vector3 point, out Vector3 normal)
+    {
+        Transform camera = GameCamera.instance != null ? GameCamera.instance.transform : null;
+        if (camera != null
+            && Physics.Raycast(camera.position, camera.forward, out RaycastHit hit, 50f, player.m_removeRayMask)
+            && hit.collider.GetComponentInParent<Piece>() == target)
+        {
+            point = hit.point;
+            normal = hit.normal;
+            return;
+        }
+
+        point = target.transform.position;
+        normal = camera != null ? -camera.forward : Vector3.up;
     }
 }
