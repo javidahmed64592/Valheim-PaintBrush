@@ -1,0 +1,20 @@
+{
+  "paintbrush_item": "Paint Brush",
+  "paintbrush_item_description": "Paints built pieces in any colour.",
+  "paintbrush_menu_title": "Paint Brush",
+  "paintbrush_piece_paint": "Paint",
+  "paintbrush_piece_paint_description": "Paints the piece you aim at.",
+  "paintbrush_piece_clear": "Clear paint",
+  "paintbrush_piece_clear_description": "Removes the paint from the piece you aim at.",
+  "paintbrush_hint_paint": "Paint",
+  "paintbrush_hint_clear": "Clear paint",
+  "paintbrush_hint_menu": "Brush menu",
+  "paintbrush_panel_strength": "Strength",
+  "paintbrush_panel_hex": "Hex",
+  "paintbrush_panel_vanilla": "Vanilla",
+  "paintbrush_panel_painted": "Painted",
+  "paintbrush_panel_palette": "Palette",
+  "paintbrush_panel_recent": "Recent",
+  "paintbrush_panel_hint": "Shift+Click a palette slot to save, Right-Click to empty it.",
+  "paintbrush_msg_cannot_paint": "Only pieces built by players can be painted"
+}
