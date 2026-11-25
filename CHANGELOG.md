@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- No longer logs a warning about a missing LiberationSans SDF font.
+
 ## 0.2.0
 
 - Works with [BetterHammer](https://thunderstore.io/c/valheim/p/Aestelwen/BetterHammer/) 1.4.0: saved copies, moved pieces and their ghosts keep their paint, and so do pieces copied with Shift+Middle-Click or brought back by undo.

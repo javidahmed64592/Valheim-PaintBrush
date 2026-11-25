@@ -87,9 +87,13 @@ internal static class MenuTitle
         rect.anchoredPosition = tabs.anchoredPosition;
         rect.sizeDelta = tabs.sizeDelta;
 
+        // TextMeshPro is added while the title is inactive so its Awake runs after the font is set. Otherwise it looks
+        // for its default font (LiberationSans SDF), which Valheim doesn't ship, and logs a warning.
+        rect.gameObject.SetActive(false);
         TextMeshProUGUI title = rect.gameObject.AddComponent<TextMeshProUGUI>();
         title.font = template.font;
         title.fontSharedMaterial = template.fontSharedMaterial;
+        rect.gameObject.SetActive(true);
         title.fontSize = template.fontSize * 1.25f;
         title.enableAutoSizing = false;
         title.color = TitleColor;
