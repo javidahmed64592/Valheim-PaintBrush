@@ -6,6 +6,8 @@
 
 Paint your buildings: a paint brush, taken out with one key, colours built pieces in any shade and strength, and clears them back to vanilla. Only players with the mod see the paint.
 
+![Painted Pieces](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/painted_pieces.png)
+
 - **Paint brush**: Press `O` to take out the brush, and again to put it away. It doesn't need to be crafted or carried.
 - **Paint and clear**: Paint any piece built by a player, or clear it back to vanilla. The piece shows the result while you aim at it, and a splash of paint lands where you click.
 - **Colour picker**: Choose any colour and how strongly it covers the piece in the brush menu, with a palette of saved colours.
@@ -14,11 +16,11 @@ Paint your buildings: a paint brush, taken out with one key, colours built piece
 - **Connected pieces**: Paint or clear a whole building in one click with `Alt+Left-Click`.
 - **Undo and redo**: Undo painting with `Ctrl+Z` and redo it with `Ctrl+Y`.
 
-![Painted Pieces](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/painted_pieces.png)
-
 ## Paint Menu
 
-`Right-Click` with the brush out opens the brush menu. Its tools are along the bottom, and the colour picker fills the top.
+`Right-Click` with the brush out opens the brush menu.
+
+![Paint Menu](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/paint_menu.png)
 
 - **Paint** colours the piece you click with the colour and strength set in the picker.
 - **Clear paint** removes the paint, so the piece looks vanilla again.
@@ -26,8 +28,6 @@ Paint your buildings: a paint brush, taken out with one key, colours built piece
 
 Choose a colour with the colour square and hue bar, the R, G and B sliders, or by typing its numbers or hex code.
 **Strength** blends between the piece's own colour and the paint: low strength tints it, 100% covers it.
-The previews show the last piece you aimed at as it is and as it would be painted.
-Very light colours are toned down a little so they don't glare in daylight.
 
 | Key | Action |
 |---|---|
@@ -36,8 +36,6 @@ Very light colours are toned down a little so they don't glare in daylight.
 | `Right-Click` a palette slot | Empty it. |
 
 Your colour, palette and recent colours are saved with your character.
-
-![Paint Menu](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/paint_menu.png)
 
 ## Painting
 
@@ -50,7 +48,6 @@ Your colour, palette and recent colours are saved with your character.
 
 - Painting needs access to the area, like building: pieces inside someone else's ward can't be painted, and `Alt+Left-Click` leaves them out.
 - Pieces count as connected when they touch, as in [BetterHammer](https://thunderstore.io/c/valheim/p/Aestelwen/BetterHammer/)'s connected selection. One click paints at most 1000 pieces by default.
-- Undoing and redoing swing the brush and splash the pieces they change. A whole connected paint undoes in one step. Pieces that were removed or are too far away are skipped.
 - The history holds 50 actions by default and lasts until you log out.
 
 ## Keyhints
