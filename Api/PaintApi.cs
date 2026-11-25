@@ -8,8 +8,9 @@ namespace PaintBrush.Api;
 /// <para>
 /// For other mods (BetterHammer's copies and moves): read and write a piece's paint, and show paint on ghosts.
 /// It only uses plain types, so a mod can call it through reflection without referencing PaintBrush, and do
-/// nothing when PaintBrush isn't installed:
-/// <c>Type.GetType("PaintBrush.Api.PaintApi, PaintBrush")</c>.
+/// nothing when PaintBrush isn't installed. BepInEx loads plugins from their files, so find the type through
+/// the plugin rather than by assembly name:
+/// <c>Chainloader.PluginInfos["javidahmed64592.paintbrush"].Instance.GetType().Assembly.GetType("PaintBrush.Api.PaintApi")</c>.
 /// </para>
 /// <para>
 /// A paint is one int: red, green and blue in the top three bytes and the strength (1-255) in the lowest; 0 means

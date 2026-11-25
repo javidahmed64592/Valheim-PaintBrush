@@ -196,6 +196,7 @@ internal static class PaintedPieces
     public static void Update()
     {
         PaintMaterials.FreeUnused();
+        GhostPaint.Sweep();
         List<Piece> pieces = Piece.s_allPieces;
         if (pieces == null || pieces.Count == 0)
         {
