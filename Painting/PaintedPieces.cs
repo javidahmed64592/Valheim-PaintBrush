@@ -386,10 +386,67 @@ internal static class PaintedPieces
         state.Slots.Clear();
     }
 
-    private static void GatherRenderers(Piece piece)
+    /// <summary>
+    /// Paints every paintable material under an object that isn't a saved piece, such as a placement ghost or a
+    /// model rendered for an icon, with counted copies. Returns what it changed, for <see cref="UnpaintObject"/>.
+    /// </summary>
+    internal static List<(Renderer Renderer, int Index, Material Original, Material Painted)> PaintObject(GameObject root, PaintColor paint)
+    {
+        List<(Renderer, int, Material, Material)> painted = [];
+        GatherRenderers(root.transform);
+        foreach (Renderer renderer in RendererBuffer)
+        {
+            Material[] materials = renderer.sharedMaterials;
+            bool changed = false;
+            for (int index = 0; index < materials.Length; index++)
+            {
+                Material original = PaintMaterials.Original(materials[index]);
+                MaterialInfo info = Info(original);
+                if (!info.Paintable)
+                {
+                    continue;
+                }
+
+                Material copy = PaintMaterials.Acquire(original, info.Texture, info.Cutout, paint);
+                painted.Add((renderer, index, original, copy));
+                materials[index] = copy;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                renderer.sharedMaterials = materials;
+            }
+        }
+
+        return painted;
+    }
+
+    /// <summary>
+    /// Undoes <see cref="PaintObject"/>: puts the original materials back and releases the painted copies.
+    /// </summary>
+    internal static void UnpaintObject(List<(Renderer Renderer, int Index, Material Original, Material Painted)> painted, PaintColor paint)
+    {
+        foreach ((Renderer renderer, int index, Material original, Material _) in painted)
+        {
+            if (renderer != null)
+            {
+                Material[] materials = renderer.sharedMaterials;
+                if (index < materials.Length && PaintMaterials.IsCopy(materials[index]))
+                {
+                    materials[index] = original;
+                    renderer.sharedMaterials = materials;
+                }
+            }
+
+            PaintMaterials.Release(original, paint);
+        }
+    }
+
+    private static void GatherRenderers(Component root)
     {
         RendererBuffer.Clear();
-        piece.GetComponentsInChildren(includeInactive: true, RendererBuffer);
+        root.GetComponentsInChildren(includeInactive: true, RendererBuffer);
         for (int i = RendererBuffer.Count - 1; i >= 0; i--)
         {
             if (RendererBuffer[i] is not MeshRenderer and not SkinnedMeshRenderer)

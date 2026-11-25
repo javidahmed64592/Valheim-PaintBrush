@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Other mods can read and set paint and show it on ghosts, so BetterHammer copies and moves can keep the paint.
+
 ## 0.1.0
 
 First release.
