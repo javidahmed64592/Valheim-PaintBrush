@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- Works with [BetterHammer](https://thunderstore.io/c/valheim/p/Aestelwen/BetterHammer/) 1.4.0: saved copies, moved pieces and their ghosts keep their paint, and so do pieces copied with Shift+Middle-Click or brought back by undo.
+- Other mods can read and set a piece's paint and show it on ghosts.
+
 ## 0.1.0
 
 First release.

@@ -64,6 +64,7 @@ Settings are in the BepInEx config file `javidahmed64592.paintbrush.cfg`: the ke
 - Pieces from other mods can be painted if they use ordinary textures.
 - Works with Valheim Performance Optimizations: painted pieces are drawn normally instead of in its batches, so they show their paint.
 - Works alongside [BetterHammer](https://thunderstore.io/c/valheim/p/Aestelwen/BetterHammer/) and [BetterHoe](https://thunderstore.io/c/valheim/p/Aestelwen/BetterHoe/): `B` takes out the hammer, `N` the hoe and `O` the brush.
+- With BetterHammer 1.4.0 or later, paint goes wherever its pieces do: saved copies keep it, ghosts show it while moving or placing, and undo puts it back.
 - This mod has not been tested with a gamepad, only with keyboard and mouse.
 
 ## Uninstalling
