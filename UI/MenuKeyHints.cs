@@ -128,7 +128,7 @@ internal static class MenuKeyHints
         if (swatch.PaletteIndex >= 0)
         {
             bool filled = BrushState.Palette[swatch.PaletteIndex].HasValue;
-            return (PaletteLibrary.Active.IsBuiltIn, filled) switch
+            return (!PaletteLibrary.Active.Editable, filled) switch
             {
                 (true, true) => Target.LockedSlot,
                 (true, false) => Target.None,

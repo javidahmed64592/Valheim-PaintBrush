@@ -535,7 +535,7 @@ internal static class PaintPanel
             {
                 if (!taken && !InPaletteArea(eventData))
                 {
-                    Locked(PaletteLibrary.Clear(index));
+                    PaletteEdit.Run(() => PaletteLibrary.Clear(index));
                 }
             };
             PaletteSwatches[i] = swatch;
@@ -584,17 +584,6 @@ internal static class PaintPanel
         }
     }
 
-    /// <summary>
-    /// Tells the player why nothing happened when they tried to change a built-in palette.
-    /// </summary>
-    private static void Locked(bool changed)
-    {
-        if (!changed && Player.m_localPlayer != null)
-        {
-            Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$paintbrush_msg_builtin_locked");
-        }
-    }
-
     private static bool InPaletteArea(PointerEventData eventData)
     {
         return RectTransformUtility.RectangleContainsScreenPoint(_paletteArea, eventData.position, eventData.pressEventCamera);
@@ -606,13 +595,18 @@ internal static class PaintPanel
     /// </summary>
     private static void OnPaletteDrop(int index, Swatch source)
     {
+        if (source.PaletteIndex == index)
+        {
+            return;
+        }
+
         if (source.PaletteIndex >= 0)
         {
-            Locked(PaletteLibrary.Swap(source.PaletteIndex, index));
+            PaletteEdit.Run(() => PaletteLibrary.Swap(source.PaletteIndex, index));
         }
         else if (source.DragColor?.Invoke() is Color32 color)
         {
-            Locked(PaletteLibrary.Place(index, color));
+            PaletteEdit.Run(() => PaletteLibrary.Place(index, color));
         }
     }
 
@@ -623,14 +617,14 @@ internal static class PaintPanel
     {
         if (button == PointerEventData.InputButton.Right)
         {
-            Locked(PaletteLibrary.Clear(index));
+            PaletteEdit.Run(() => PaletteLibrary.Clear(index));
         }
         else if (button == PointerEventData.InputButton.Left)
         {
             Color32? slot = BrushState.Palette[index];
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || !slot.HasValue)
             {
-                Locked(PaletteLibrary.Place(index, BrushState.Color));
+                PaletteEdit.Run(() => PaletteLibrary.Place(index, BrushState.Color));
             }
             else
             {

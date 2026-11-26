@@ -345,6 +345,15 @@ internal sealed class HoverButton : MonoBehaviour, IPointerClickHandler, IPointe
         Refresh();
     }
 
+    /// <summary>
+    /// Changes the colour shown while the mouse isn't over the button.
+    /// </summary>
+    public void SetNormal(Color color)
+    {
+        Normal = color;
+        Refresh();
+    }
+
     private void OnDisable()
     {
         _hovered = false;

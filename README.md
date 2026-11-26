@@ -47,6 +47,8 @@ Step through your palettes with the arrows on either side of its name, or click 
 | `Shift+Left-Click` a palette slot | Save the current colour there. |
 | `Right-Click` a palette slot | Empty it. |
 
+Click the padlock next to the name to lock one of your palettes, so it can't be changed by accident. While it's locked, anything that would change it, including renaming and deleting it, asks you to unlock it first. Built-in palettes are always locked.
+
 ### Palette Menu
 
 The `⋯` button next to the palette's name opens the palette menu.

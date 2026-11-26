@@ -37,6 +37,7 @@ internal static class PaletteLibrary
     private sealed class PaletteData
     {
         public string Name;
+        public bool Locked;
         public List<string> Colors = [];
     }
 
@@ -158,11 +159,11 @@ internal static class PaletteLibrary
     }
 
     /// <summary>
-    /// Empties a slot. False on a built-in palette.
+    /// Empties a slot. False on a palette that can't be changed.
     /// </summary>
     public static bool Clear(int index)
     {
-        if (Active.IsBuiltIn || index is < 0 or >= Palette.Size)
+        if (!Active.Editable || index is < 0 or >= Palette.Size)
         {
             return false;
         }
@@ -174,11 +175,12 @@ internal static class PaletteLibrary
 
     /// <summary>
     /// Saves a colour into a slot. If the palette already has the colour in another slot, it moves to this slot
-    /// instead and swaps with whatever was here, so a colour is never saved twice. False on a built-in palette.
+    /// instead and swaps with whatever was here, so a colour is never saved twice. False on a palette that can't be
+    /// changed.
     /// </summary>
     public static bool Place(int index, Color32 color)
     {
-        if (Active.IsBuiltIn || index is < 0 or >= Palette.Size)
+        if (!Active.Editable || index is < 0 or >= Palette.Size)
         {
             return false;
         }
@@ -198,11 +200,11 @@ internal static class PaletteLibrary
     }
 
     /// <summary>
-    /// Swaps two slots. False on a built-in palette.
+    /// Swaps two slots. False on a palette that can't be changed.
     /// </summary>
     public static bool Swap(int a, int b)
     {
-        if (Active.IsBuiltIn || a is < 0 or >= Palette.Size || b is < 0 or >= Palette.Size)
+        if (!Active.Editable || a is < 0 or >= Palette.Size || b is < 0 or >= Palette.Size)
         {
             return false;
         }
@@ -234,7 +236,7 @@ internal static class PaletteLibrary
     public static void Rename(Palette palette, string name)
     {
         name = Clean(name);
-        if (!palette.IsBuiltIn && name.Length > 0 && name != palette.Name && All.Contains(palette))
+        if (palette.Editable && name.Length > 0 && name != palette.Name && All.Contains(palette))
         {
             palette.Name = UniqueName(name, palette);
             Changed();
@@ -245,12 +247,31 @@ internal static class PaletteLibrary
 
     public static void Delete()
     {
-        if (CanDelete)
+        if (Active.Editable)
         {
             All.RemoveAt(_active);
             _active = Mathf.Clamp(_active, 0, All.Count - 1);
             Changed();
         }
+    }
+
+    /// <summary>
+    /// Locks or unlocks one of the player's palettes. False on a built-in palette, which is always locked.
+    /// </summary>
+    public static bool SetLocked(Palette palette, bool locked)
+    {
+        if (palette.IsBuiltIn)
+        {
+            return false;
+        }
+
+        if (palette.Locked != locked)
+        {
+            palette.Locked = locked;
+            Changed();
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -325,7 +346,7 @@ internal static class PaletteLibrary
 
     private static Palette FromData(PaletteData data)
     {
-        Palette palette = new(UniqueName(data.Name, null));
+        Palette palette = new(UniqueName(data.Name, null)) { Locked = data.Locked };
         for (int i = 0; i < Palette.Size && data.Colors != null && i < data.Colors.Count; i++)
         {
             palette.Colors[i] = BrushState.TryParseHex(data.Colors[i], out Color32 color) ? color : null;
@@ -344,7 +365,7 @@ internal static class PaletteLibrary
                 continue;
             }
 
-            PaletteData saved = new() { Name = palette.Name };
+            PaletteData saved = new() { Name = palette.Name, Locked = palette.Locked };
             foreach (Color32? color in palette.Colors)
             {
                 saved.Colors.Add(color.HasValue ? BrushState.ToHex(color.Value) : "");
