@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.2
 
 - Right-clicking a palette slot empties it again, instead of closing the brush menu.
 - The palette holds 24 colours (3 rows) and the recent colours 16 (2 rows).

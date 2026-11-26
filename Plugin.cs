@@ -19,7 +19,7 @@ public class PaintBrushPlugin : BaseUnityPlugin
 {
     public const string PluginGUID = "javidahmed64592.paintbrush";
     public const string PluginName = "Paint Brush";
-    public const string PluginVersion = "0.2.1";
+    public const string PluginVersion = "0.2.2";
 
     private Harmony _harmony;
 
