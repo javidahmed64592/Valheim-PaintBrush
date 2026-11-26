@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- A padlock next to the palette's name locks one of your palettes against accidental changes. Changing a locked palette, including renaming or deleting it, asks you to unlock it first.
+
 ## 0.3.0
 
 - Palettes: step through them with the arrows above the palette or pick one from the list under its name, and make, rename, duplicate or delete them from the `⋯` menu. They're shared by all your characters.

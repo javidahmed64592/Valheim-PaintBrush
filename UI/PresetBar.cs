@@ -13,10 +13,11 @@ namespace PaintBrush.UI;
 /// <summary>
 /// <para>
 /// The row above the palette: arrows to step through the palettes, the palette's name (click it for a list of every
-/// palette), and a ⋯ button with a menu to make, rename, duplicate, share and delete palettes.
+/// palette), a padlock, and a ⋯ button with a menu to make, rename, duplicate, share and delete palettes.
 /// </para>
 /// <para>
 /// Built-in palettes are marked as such and can't be renamed, deleted or changed: duplicate one to make it your own.
+/// The player's own palettes can be locked with the padlock, and ask to be unlocked before they change.
 /// </para>
 /// </summary>
 internal static class PresetBar
@@ -26,6 +27,8 @@ internal static class PresetBar
     private const int ListVisibleRows = 8;
     private const float MenuWidth = 168f;
     private const float Padding = 4f;
+    private const int NameSize = 16;
+    private const int NameMinSize = 10;
 
     private static readonly Color IconColor = new(0.85f, 0.78f, 0.65f);
     private static readonly Color IconHover = new(1f, 0.72f, 0.36f);
@@ -61,6 +64,10 @@ internal static class PresetBar
     private static Color _labelColor;
     private static HoverButton _previous;
     private static HoverButton _next;
+    private static HoverButton _lock;
+    private static Image _lockImage;
+    private static Sprite _closedLock;
+    private static Sprite _openLock;
     private static RectTransform _nameButton;
     private static RectTransform _more;
     private static RectTransform _menu;
@@ -84,20 +91,28 @@ internal static class PresetBar
         _labelColor = labelColor;
         Entries.Clear();
         Entries.Add(new Entry("$paintbrush_menu_new", New));
-        Entries.Add(new Entry("$paintbrush_menu_rename", () => AskName(PaletteLibrary.Active), () => !PaletteLibrary.Active.IsBuiltIn));
+        Entries.Add(new Entry("$paintbrush_menu_rename", () => PaletteEdit.Run(() => AskName(PaletteLibrary.Active)),
+            () => !PaletteLibrary.Active.IsBuiltIn));
         Entries.Add(new Entry("$paintbrush_menu_duplicate", () => PaletteLibrary.Add(
             PaletteLibrary.Active.CopyAs(Localize("$paintbrush_palette_copy_name", PaletteLibrary.Active.Name)))));
         Entries.Add(new Entry("$paintbrush_menu_copy_code", CopyCode));
         Entries.Add(new Entry("$paintbrush_menu_paste_code", PasteCode));
         Entries.Add(new Entry("$paintbrush_menu_delete", Delete, () => PaletteLibrary.CanDelete, keepOpen: true));
 
+        // ◀ name ▶ 🔒 ⋯. The drawings don't fill their squares (the arrows leave a margin each side, the dots don't),
+        // so the squares overlap the name's box a little and the padlock sits where the gaps look even.
+        _closedLock = MakePadlock(open: false);
+        _openLock = MakePadlock(open: true);
+
         _previous = Icon(root, "Previous", x, y, height, MakeArrow(right: false), () => PaletteLibrary.Cycle(-1));
-        _next = Icon(root, "Next", x + width - (2f * height) - 6f, y, height, MakeArrow(right: true), () => PaletteLibrary.Cycle(1));
+        _next = Icon(root, "Next", x + width - (3f * height) - 2f, y, height, MakeArrow(right: true), () => PaletteLibrary.Cycle(1));
+        _lock = Icon(root, "Lock", x + width - (2f * height) - 3f, y, height, _closedLock, PaletteEdit.ToggleLock);
+        _lockImage = (Image)_lock.Target;
         _more = Icon(root, "More", x + width - height, y, height, MakeDots(), ToggleMenu).GetComponent<RectTransform>();
 
         // The name and a small down arrow, together one button that opens the list.
-        float nameX = x + height + 4f;
-        float nameWidth = width - (4f * height) - 4f;
+        float nameX = x + 16f;
+        float nameWidth = width - (4f * height) - 2f;
         Image nameBack = Image(root, "Name", nameX, y - 2f, nameWidth, height + 4f, RowNormal, White);
         _nameButton = nameBack.rectTransform;
         HoverButton nameButton = nameBack.gameObject.AddComponent<HoverButton>();
@@ -106,11 +121,9 @@ internal static class PresetBar
         nameButton.Hover = RowHover;
         nameButton.Clicked = ToggleList;
 
-        _name = Label(nameBack.transform, "", 4f, 0f, nameWidth - 22f, height + 4f, labelColor, 16);
+        _name = Label(nameBack.transform, "", 4f, 0f, nameWidth - 24f, height + 4f, labelColor, NameSize);
         _name.alignment = TextAnchor.MiddleCenter;
-        _name.resizeTextForBestFit = true;
-        _name.resizeTextMinSize = 10;
-        _name.resizeTextMaxSize = 16;
+        _name.horizontalOverflow = HorizontalWrapMode.Overflow;
         Image arrow = Image(nameBack.transform, "Arrow", nameWidth - 16f, 4f, 12f, 12f, IconColor, MakeArrowDown());
         arrow.raycastTarget = false;
 
@@ -127,9 +140,14 @@ internal static class PresetBar
 
         Palette active = PaletteLibrary.Active;
         _name.text = active.IsBuiltIn ? Localize("$paintbrush_palette_builtin_name", active.Name) : active.Name;
+        FitName();
         bool several = PaletteLibrary.Palettes.Count > 1;
         _previous.Interactable = several;
         _next.Interactable = several;
+
+        // Gold while locked; a built-in palette shows a plain closed padlock, as it can't be unlocked.
+        _lockImage.sprite = active.Locked || active.IsBuiltIn ? _closedLock : _openLock;
+        _lock.SetNormal(active.Locked ? Gold : IconColor);
         if (ListOpen)
         {
             FillList();
@@ -163,6 +181,20 @@ internal static class PresetBar
         if (_list != null)
         {
             _list.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Keeps the name on one line, shrinking it as far as <see cref="NameMinSize"/> to fit. (Unity's best fit would
+    /// wrap it onto a second line instead.)
+    /// </summary>
+    private static void FitName()
+    {
+        float room = _name.rectTransform.rect.width;
+        _name.fontSize = NameSize;
+        while (_name.fontSize > NameMinSize && _name.preferredWidth > room)
+        {
+            _name.fontSize--;
         }
     }
 
@@ -325,16 +357,19 @@ internal static class PresetBar
     private static void New()
     {
         Palette palette = PaletteLibrary.Add(new Palette(Localize("$paintbrush_palette_new_name")));
-        AskName(palette);
+        _ = AskName(palette);
     }
 
-    private static void AskName(Palette palette)
+    private static bool AskName(Palette palette)
     {
-        if (TextInput.instance != null && !palette.IsBuiltIn)
+        if (TextInput.instance == null || !palette.Editable)
         {
-            TextInput.instance.RequestText(new NameReceiver(palette.Name, name => PaletteLibrary.Rename(palette, name)),
-                "$paintbrush_palette_name", PaletteLibrary.NameLimit);
+            return false;
         }
+
+        TextInput.instance.RequestText(new NameReceiver(palette.Name, name => PaletteLibrary.Rename(palette, name)),
+            "$paintbrush_palette_name", PaletteLibrary.NameLimit);
+        return true;
     }
 
     private static void CopyCode()
@@ -357,10 +392,18 @@ internal static class PresetBar
     }
 
     /// <summary>
-    /// The first click asks for a second one, as a deleted palette can't be brought back.
+    /// The first click asks for a second one, as a deleted palette can't be brought back. A locked palette asks to be
+    /// unlocked instead; the menu closes for that, so Delete is then chosen again.
     /// </summary>
     private static void Delete()
     {
+        if (PaletteLibrary.Active.Locked)
+        {
+            CloseMenu();
+            PaletteEdit.AskUnlock(PaletteLibrary.Active, null);
+            return;
+        }
+
         if (!_confirmingDelete)
         {
             _confirmingDelete = true;

@@ -127,6 +127,43 @@ internal static class UiParts
         });
     }
 
+    /// <summary>
+    /// A padlock, closed or with its shackle raised and open on the right.
+    /// </summary>
+    internal static Sprite MakePadlock(bool open)
+    {
+        const float radius = 5.5f;
+        const float half = 1.7f;
+        // Body from 3.5 to 16.5 and the closed shackle's top at about 28, centred in the 32 pixels.
+        const float bodyBottom = 3.5f;
+        const float bodyTop = 16.5f;
+        float centre = open ? 24f : 20.5f;
+        return MakeSprite(32, (x, y) =>
+        {
+            // Rows count up from the bottom. The body, with a keyhole cut out.
+            float body = Mathf.Clamp01(Mathf.Min(Mathf.Min(x - 7.5f, 24.5f - x), Mathf.Min(y + 0.5f - bodyBottom, bodyTop + 0.5f - y)) + 0.5f);
+            if (Vector2.Distance(new Vector2(x, y), new Vector2(15.5f, 10f)) < 2f)
+            {
+                body = 0f;
+            }
+
+            // The shackle: a half ring over two legs. Open, the right leg stops short of the body.
+            float shackle;
+            if (y >= centre)
+            {
+                shackle = half + 0.5f - Mathf.Abs(Vector2.Distance(new Vector2(x, y), new Vector2(15.5f, centre)) - radius);
+            }
+            else
+            {
+                float left = y > bodyTop ? half + 0.5f - Mathf.Abs(x - (15.5f - radius)) : 0f;
+                float right = y > (open ? centre - 2f : bodyTop) ? half + 0.5f - Mathf.Abs(x - (15.5f + radius)) : 0f;
+                shackle = Mathf.Max(left, right);
+            }
+
+            return Mathf.Max(body, Mathf.Clamp01(shackle));
+        });
+    }
+
     private static Sprite MakeSprite(int size, Func<float, float, float> alpha)
     {
         Texture2D texture = new(size, size, TextureFormat.RGBA32, mipChain: false) { filterMode = FilterMode.Bilinear };
