@@ -6,17 +6,21 @@ using Jotunn.Managers;
 
 using PaintBrush.Brush;
 using PaintBrush.Painting;
+using PaintBrush.Palettes;
 
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+
+using static PaintBrush.UI.UiParts;
 
 namespace PaintBrush.UI;
 
 /// <summary>
 /// The colour picker inside the brush menu, above the tools: a saturation/value square and a hue bar, R, G, B and
 /// Strength sliders with number fields, a hex field, a preview of the last piece aimed at (vanilla and painted),
-/// the saved palette and the recent colours. It opens and closes with the menu, and every change applies at once.
+/// the palettes (see <see cref="PresetBar"/>), the recent colours and shades of the current colour. Any colour can
+/// be dragged onto the palette, palette colours can be dragged to reorder them or off the palette to remove them. It opens and closes with the menu, and every change applies at once.
 /// </summary>
 internal static class PaintPanel
 {
@@ -32,6 +36,12 @@ internal static class PaintPanel
     /// How far the grid of tools is moved down to make room for the panel.
     /// </summary>
     private const float Shift = Height + Gap;
+
+    /// <summary>
+    /// How much taller the build menu's window gets (downwards) while the brush menu is open, so the tools below the
+    /// panel fit without a scroll bar.
+    /// </summary>
+    private const float Grow = 48f;
 
     private const float SquareSize = 250f;
     private const int SquareResolution = 64;
@@ -56,7 +66,8 @@ internal static class PaintPanel
 
     private static readonly List<SliderRow> Rows = [];
     private static readonly List<InputField> Fields = [];
-    private static readonly Swatch[] PaletteSwatches = new Swatch[BrushState.PaletteSize];
+    private static readonly Swatch[] PaletteSwatches = new Swatch[Palette.Size];
+    private static readonly Swatch[] ShadeSwatches = new Swatch[BrushState.ShadeCount];
     private static readonly Swatch[] RecentSwatches = new Swatch[BrushState.RecentSize];
 
     private static RectTransform _root;
@@ -66,16 +77,17 @@ internal static class PaintPanel
 
     private static Texture2D _squareTexture;
     private static Texture2D _hueTexture;
-    private static Sprite _white;
     private static Sprite _ring;
     private static RectTransform _squareKnob;
     private static RectTransform _hueMarker;
     private static InputField _hex;
     private static Image _current;
+    private static RectTransform _paletteArea;
     private static RawImage _vanilla;
     private static RawImage _painted;
 
     private static RectTransform _shiftedView;
+    private static RectTransform _grownWindow;
 
     private static int _shownVersion = -1;
     private static float _shownHue = -1f;
@@ -97,6 +109,7 @@ internal static class PaintPanel
                 _root.gameObject.SetActive(false);
             }
 
+            PresetBar.Close();
             ShiftGrid(null);
             SetBlocking(false);
             return;
@@ -115,8 +128,19 @@ internal static class PaintPanel
 
         Position(ui);
         Refresh();
+        PresetBar.Update();
         SetBlocking(AnyFieldFocused());
     }
+
+    /// <summary>
+    /// Whether the brush menu's colour picker is showing.
+    /// </summary>
+    public static bool Visible => _root != null && _root.gameObject.activeInHierarchy;
+
+    /// <summary>
+    /// Whether a right-click now does something in the panel, so it mustn't also close the build menu.
+    /// </summary>
+    public static bool UsesRightClick => Visible && (Swatch.RightClickHovered || PresetBar.PopupHovered);
 
     /// <summary>
     /// Keeps keys typed into the number and hex fields from moving the player or switching tools.
@@ -144,8 +168,9 @@ internal static class PaintPanel
     }
 
     /// <summary>
-    /// Moves the grid of tools down by <see cref="Shift"/> while the brush menu is open, and back when it closes
-    /// (pass null). The move is relative, so it adds to whatever other mods (BetterHammer's toolbar) did to the grid.
+    /// Moves the grid of tools down by <see cref="Shift"/> and makes the window <see cref="Grow"/> taller while the
+    /// brush menu is open, and undoes both when it closes (pass null). The changes are relative, so they add to
+    /// whatever other mods (BetterHammer's toolbar) did.
     /// </summary>
     private static void ShiftGrid(RectTransform view)
     {
@@ -159,10 +184,25 @@ internal static class PaintPanel
             _shiftedView.offsetMax += new Vector2(0f, Shift);
         }
 
+        if (_grownWindow != null)
+        {
+            _grownWindow.sizeDelta -= new Vector2(0f, Grow);
+            _grownWindow.anchoredPosition += new Vector2(0f, Grow / 2f);
+            _grownWindow = null;
+        }
+
         _shiftedView = view;
         if (view != null)
         {
             view.offsetMax -= new Vector2(0f, Shift);
+
+            // The window is centred, so moving it down by half keeps its top where it was.
+            _grownWindow = view.GetComponentInParent<BuildUi>()?.transform.Find("bar") as RectTransform;
+            if (_grownWindow != null)
+            {
+                _grownWindow.sizeDelta += new Vector2(0f, Grow);
+                _grownWindow.anchoredPosition -= new Vector2(0f, Grow / 2f);
+            }
         }
     }
 
@@ -258,10 +298,18 @@ internal static class PaintPanel
                 _painted.color = Color.Lerp(Wood, color, BrushState.Strength / 100f);
             }
 
+            PresetBar.Refresh();
             for (int i = 0; i < PaletteSwatches.Length; i++)
             {
                 Color32? slot = BrushState.Palette[i];
                 PaletteSwatches[i].Image.color = slot ?? (Color32)EmptySlot;
+                PaletteSwatches[i].Selected = slot.HasValue && PaletteLibrary.Near(slot.Value, color);
+            }
+
+            for (int i = 0; i < ShadeSwatches.Length; i++)
+            {
+                ShadeSwatches[i].Image.color = BrushState.Shade(i);
+                ShadeSwatches[i].Selected = i == BrushState.ShadeIndex;
             }
 
             for (int i = 0; i < RecentSwatches.Length; i++)
@@ -304,7 +352,6 @@ internal static class PaintPanel
         _shownVersion = -1;
         _shownHue = -1f;
         _shownSample = null;
-        _white ??= Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
         _ring ??= MakeRing();
 
         _root = Box(window, "PaintBrush_Panel", 0f, 0f, Width, Height);
@@ -313,6 +360,8 @@ internal static class PaintPanel
         CreateSliders();
         CreatePreview();
         CreateSwatches();
+        CreateShades();
+        DragGhost.Init(_root);
         return true;
     }
 
@@ -342,7 +391,7 @@ internal static class PaintPanel
         _hueTexture.Apply();
         RawImage hue = Raw(_root, "Hue", SquareSize + 12f, 0f, 22f, SquareSize, _hueTexture);
         hue.gameObject.AddComponent<DragArea>().Changed = p => BrushState.SetHsv(Mathf.Min(p.y, 0.999f), BrushState.Saturation, BrushState.Value);
-        Image marker = Image(hue.transform, "Marker", -5f, 0f, 32f, 4f, Color.white, _white);
+        Image marker = Image(hue.transform, "Marker", -5f, 0f, 32f, 4f, Color.white, White);
         marker.raycastTarget = false;
         marker.rectTransform.pivot = new Vector2(0f, 0.5f);
         Outline outline = marker.gameObject.AddComponent<Outline>();
@@ -373,11 +422,14 @@ internal static class PaintPanel
                 _shownVersion = -1;
             }
         });
-        _current = Image(_root, "Current", x + 204f, y, 154f, 32f, Color.white, _white);
-        _current.raycastTarget = false;
-        Swatch.Style(_current.gameObject.AddComponent<Outline>());
+        _current = Image(_root, "Current", x + 204f, y, 154f, 32f, Color.white, White);
+        Outline currentOutline = _current.gameObject.AddComponent<Outline>();
+        Swatch.Style(currentOutline);
+        Swatch current = _current.gameObject.AddComponent<Swatch>();
+        current.Outline = currentOutline;
+        current.DragColor = () => BrushState.Color;
 
-        _ = Label(_root, "$paintbrush_panel_hint", x, 232f, 358f, 24f, TextColor, 14);
+        _ = Label(_root, "$paintbrush_panel_hint", x, 224f, 358f, 40f, TextColor, 14);
     }
 
     private static void AddRow(string label, float y, int max, Func<int> get, Action<int> set, Func<float, Color> colorAt)
@@ -394,7 +446,7 @@ internal static class PaintPanel
         Swatch.Style(track.gameObject.AddComponent<Outline>());
         track.gameObject.AddComponent<DragArea>().Changed = p => set(Mathf.RoundToInt(p.x * max));
 
-        Image handle = Image(track.transform, "Handle", 0f, 11f, 6f, 30f, Color.white, _white);
+        Image handle = Image(track.transform, "Handle", 0f, 11f, 6f, 30f, Color.white, White);
         handle.raycastTarget = false;
         handle.rectTransform.pivot = new Vector2(0.5f, 0.5f);
         Swatch.Style(handle.gameObject.AddComponent<Outline>());
@@ -465,13 +517,27 @@ internal static class PaintPanel
     private static void CreateSwatches()
     {
         const float x = 712f;
-        _ = Label(_root, "$paintbrush_panel_palette", x, 92f, 290f, 20f, LabelColor, 16);
+        PresetBar.Create(_root, x, 92f, 290f, 20f, LabelColor);
+
+        // Letting go of a palette colour outside this area removes it; inside (between slots) does nothing.
+        _paletteArea = Box(_root, "PaletteArea", x - 4f, 112f, 290f + 8f, 110f);
         for (int i = 0; i < PaletteSwatches.Length; i++)
         {
             int index = i;
             Swatch swatch = MakeSwatch(x + (i % 8 * 36f), 116f + (i / 8 * 36f));
-            swatch.Clicked = button => OnPaletteClick(index, button);
+            swatch.PaletteIndex = index;
             swatch.UsesRightClick = true;
+            swatch.Clicked = button => OnPaletteClick(index, button);
+            swatch.DragColor = () => BrushState.Palette[index];
+            swatch.Dropped = source => OnPaletteDrop(index, source);
+            swatch.DragMoved = eventData => DragGhost.SetRemoving(!InPaletteArea(eventData));
+            swatch.DragEnded = (eventData, taken) =>
+            {
+                if (!taken && !InPaletteArea(eventData))
+                {
+                    Locked(PaletteLibrary.Clear(index));
+                }
+            };
             PaletteSwatches[i] = swatch;
         }
 
@@ -487,7 +553,66 @@ internal static class PaintPanel
                     BrushState.SetColor(BrushState.Recent[index]);
                 }
             };
+            swatch.DragColor = () => index < BrushState.Recent.Count ? BrushState.Recent[index] : null;
             RecentSwatches[i] = swatch;
+        }
+    }
+
+    /// <summary>
+    /// Darker and lighter shades of a base colour, under the hint in the middle column. Choosing one keeps the base,
+    /// so the row stays the same while switching between shades.
+    /// </summary>
+    private static void CreateShades()
+    {
+        const float x = 318f;
+        const float y = 274f;
+        const float size = 28f;
+        _ = Label(_root, "$paintbrush_panel_shades", x, y - 2f, 78f, 32f, LabelColor, 18);
+        for (int i = 0; i < ShadeSwatches.Length; i++)
+        {
+            int index = i;
+            Swatch swatch = MakeSwatch(x + 82f + (i * (size + 3f)), y, size);
+            swatch.Clicked = button =>
+            {
+                if (button == PointerEventData.InputButton.Left)
+                {
+                    BrushState.UseShade(index);
+                }
+            };
+            swatch.DragColor = () => BrushState.Shade(index);
+            ShadeSwatches[i] = swatch;
+        }
+    }
+
+    /// <summary>
+    /// Tells the player why nothing happened when they tried to change a built-in palette.
+    /// </summary>
+    private static void Locked(bool changed)
+    {
+        if (!changed && Player.m_localPlayer != null)
+        {
+            Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$paintbrush_msg_builtin_locked");
+        }
+    }
+
+    private static bool InPaletteArea(PointerEventData eventData)
+    {
+        return RectTransformUtility.RectangleContainsScreenPoint(_paletteArea, eventData.position, eventData.pressEventCamera);
+    }
+
+    /// <summary>
+    /// A palette colour dropped on another slot swaps with it; any other colour is saved into the slot (or moved
+    /// there, if the palette already has it).
+    /// </summary>
+    private static void OnPaletteDrop(int index, Swatch source)
+    {
+        if (source.PaletteIndex >= 0)
+        {
+            Locked(PaletteLibrary.Swap(source.PaletteIndex, index));
+        }
+        else if (source.DragColor?.Invoke() is Color32 color)
+        {
+            Locked(PaletteLibrary.Place(index, color));
         }
     }
 
@@ -498,14 +623,14 @@ internal static class PaintPanel
     {
         if (button == PointerEventData.InputButton.Right)
         {
-            BrushState.SetPaletteSlot(index, null);
+            Locked(PaletteLibrary.Clear(index));
         }
         else if (button == PointerEventData.InputButton.Left)
         {
             Color32? slot = BrushState.Palette[index];
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || !slot.HasValue)
             {
-                BrushState.SetPaletteSlot(index, BrushState.Color);
+                Locked(PaletteLibrary.Place(index, BrushState.Color));
             }
             else
             {
@@ -514,57 +639,15 @@ internal static class PaintPanel
         }
     }
 
-    private static Swatch MakeSwatch(float x, float y)
+    private static Swatch MakeSwatch(float x, float y, float size = 30f)
     {
-        Image image = Image(_root, "Swatch", x, y, 30f, 30f, EmptySlot, _white);
+        Image image = Image(_root, "Swatch", x, y, size, size, EmptySlot, White);
         Outline outline = image.gameObject.AddComponent<Outline>();
         Swatch.Style(outline);
         Swatch swatch = image.gameObject.AddComponent<Swatch>();
         swatch.Image = image;
         swatch.Outline = outline;
         return swatch;
-    }
-
-    /// <summary>
-    /// A rectangle placed from the parent's top left corner, with y growing downwards.
-    /// </summary>
-    private static RectTransform Box(Transform parent, string name, float x, float y, float width, float height)
-    {
-        RectTransform rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
-        rect.SetParent(parent, false);
-        rect.anchorMin = new Vector2(0f, 1f);
-        rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = new Vector2(x, -y);
-        rect.sizeDelta = new Vector2(width, height);
-        return rect;
-    }
-
-    private static RawImage Raw(Transform parent, string name, float x, float y, float width, float height, Texture texture)
-    {
-        RawImage image = Box(parent, name, x, y, width, height).gameObject.AddComponent<RawImage>();
-        image.texture = texture;
-        return image;
-    }
-
-    private static Image Image(Transform parent, string name, float x, float y, float width, float height, Color color, Sprite sprite)
-    {
-        Image image = Box(parent, name, x, y, width, height).gameObject.AddComponent<Image>();
-        image.sprite = sprite;
-        image.color = color;
-        return image;
-    }
-
-    private static Text Label(Transform parent, string token, float x, float y, float width, float height, Color color, int size)
-    {
-        Text text = Box(parent, "Label", x, y, width, height).gameObject.AddComponent<Text>();
-        GUIManager.Instance.ApplyTextStyle(text, GUIManager.Instance.AveriaSerifBold, color, size, createOutline: true);
-        text.alignment = TextAnchor.MiddleLeft;
-        text.horizontalOverflow = HorizontalWrapMode.Wrap;
-        text.verticalOverflow = VerticalWrapMode.Overflow;
-        text.raycastTarget = false;
-        text.text = Localization.instance.Localize(token);
-        return text;
     }
 
     private static InputField Field(Transform parent, float x, float y, float width, float height, InputField.ContentType type, int limit)
@@ -602,27 +685,5 @@ internal static class PaintPanel
 
         Fields.Add(field);
         return field;
-    }
-
-    private static Sprite MakeRing()
-    {
-        const int size = 32;
-        Texture2D texture = new(size, size, TextureFormat.RGBA32, mipChain: false);
-        Vector2 centre = new((size - 1) / 2f, (size - 1) / 2f);
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float distance = Vector2.Distance(new Vector2(x, y), centre);
-                float white = Mathf.Clamp01(3f - Mathf.Abs(distance - 11f));
-                float black = Mathf.Clamp01(5f - Mathf.Abs(distance - 11f));
-                Color color = Color.Lerp(Color.black, Color.white, white);
-                color.a = Mathf.Max(white, black * 0.8f);
-                texture.SetPixel(x, y, color);
-            }
-        }
-
-        texture.Apply();
-        return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
     }
 }

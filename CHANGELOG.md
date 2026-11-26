@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0
+
+- Palettes: step through them with the arrows above the palette or pick one from the list under its name, and make, rename, duplicate or delete them from the `⋯` menu. They're shared by all your characters.
+- Comes with four built-in palettes (Banners, Earth & wood, Stone & metal and Vivid). Duplicate one to make your own version.
+- Share a palette as a code: Copy code puts it in the clipboard, Paste code adds one.
+- Drag any colour onto the palette to save it, drag palette colours onto each other to swap them, and off the palette to remove them. Saving a colour the palette already has moves it instead.
+- The palette slot matching your current colour has a gold outline.
+- A Shades row shows darker and lighter shades of a colour, and stays the same while you switch between them.
+- The key hints in the brush menu show what you can do with the swatch under the mouse, instead of the build menu's Favorite and Search.
+- A palette saved before this version becomes a palette named after the character.
+- The brush menu's window is taller, so the tools fit below the colour picker without a scroll bar.
+
 ## 0.2.2
 
 - Right-clicking a palette slot empties it again, instead of closing the brush menu.
