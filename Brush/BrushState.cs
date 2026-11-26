@@ -274,7 +274,7 @@ internal static class BrushState
 
         _ = player.m_customData.Remove(OldPaletteKey);
         string[] hexes = saved.Split(',');
-        Palettes.Palette palette = new(Localization.instance.Localize("$paintbrush_palette_migrated", player.GetPlayerName()));
+        Palette palette = new(Localization.instance.Localize("$paintbrush_palette_migrated", player.GetPlayerName()));
         bool changed = false;
         for (int i = 0; i < Palettes.Palette.Size; i++)
         {

@@ -15,9 +15,7 @@ internal static class UiParts
 {
     private static readonly float[] DotCentres = [6f, 15.5f, 25f];
 
-    private static Sprite _white;
-
-    public static Sprite White => _white ??= Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
+    public static Sprite White => field ??= Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
 
     /// <summary>
     /// A rectangle placed from the parent's top left corner, with y growing downwards.

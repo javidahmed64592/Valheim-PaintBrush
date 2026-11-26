@@ -96,8 +96,6 @@ internal sealed class Swatch : MonoBehaviour, IPointerDownHandler, IPointerClick
 
     public Image Image;
     public Outline Outline;
-
-    private bool _selected;
     private bool _dragged;
     private bool _dropTaken;
 
@@ -118,12 +116,12 @@ internal sealed class Swatch : MonoBehaviour, IPointerDownHandler, IPointerClick
 
     public bool Selected
     {
-        get => _selected;
+        get;
         set
         {
-            if (_selected != value)
+            if (field != value)
             {
-                _selected = value;
+                field = value;
                 UpdateOutline();
             }
         }
@@ -228,9 +226,9 @@ internal sealed class Swatch : MonoBehaviour, IPointerDownHandler, IPointerClick
             return;
         }
 
-        Color color = _selected ? Gold : Normal;
+        Color color = Selected ? Gold : Normal;
         Outline.effectColor = _hovered == this ? Hover : color;
-        Outline.effectDistance = _selected ? new Vector2(3f, -3f) : new Vector2(2f, -2f);
+        Outline.effectDistance = Selected ? new Vector2(3f, -3f) : new Vector2(2f, -2f);
     }
 
     public static void Style(Outline outline)
@@ -316,21 +314,20 @@ internal sealed class HoverButton : MonoBehaviour, IPointerClickHandler, IPointe
     public Color Hover = Color.white;
 
     private bool _hovered;
-    private bool _interactable = true;
 
     public bool Interactable
     {
-        get => _interactable;
+        get;
         set
         {
-            _interactable = value;
+            field = value;
             Refresh();
         }
-    }
+    } = true;
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (_interactable && eventData.button == PointerEventData.InputButton.Left)
+        if (Interactable && eventData.button == PointerEventData.InputButton.Left)
         {
             Clicked?.Invoke();
         }
@@ -358,8 +355,8 @@ internal sealed class HoverButton : MonoBehaviour, IPointerClickHandler, IPointe
     {
         if (Target != null)
         {
-            Color color = _hovered && _interactable ? Hover : Normal;
-            if (!_interactable)
+            Color color = _hovered && Interactable ? Hover : Normal;
+            if (!Interactable)
             {
                 color.a *= 0.35f;
             }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using HarmonyLib;
+
 using PaintBrush.Brush;
 using PaintBrush.Palettes;
 
@@ -58,6 +60,15 @@ internal static class MenuKeyHints
     ];
 
     private static readonly string[] HiddenVanilla = ["Favorite", "Search"];
+
+    /// <summary>
+    /// Read by reflection, as the game assemblies CI builds against are older than the field.
+    /// </summary>
+    private static readonly AccessTools.FieldRef<KeyHints, GameObject> BuildUiHints =
+        AccessTools.Field(typeof(KeyHints), "m_buildUIHints") != null
+            ? AccessTools.FieldRefAccess<KeyHints, GameObject>("m_buildUIHints")
+            : null;
+
     private static readonly List<GameObject> Hidden = [];
     private static Transform _keyboard;
     private static bool _createFailed;
@@ -77,9 +88,10 @@ internal static class MenuKeyHints
             Hidden.Clear();
         }
 
+        GameObject hints = BuildUiHints?.Invoke(keyHints);
         bool show = PaintPanel.Visible
-            && keyHints.m_buildUIHints != null
-            && keyHints.m_buildUIHints.activeInHierarchy
+            && hints != null
+            && hints.activeInHierarchy
             && !ZInput.IsGamepadActive();
 
         if (!show)
@@ -88,7 +100,7 @@ internal static class MenuKeyHints
             return;
         }
 
-        if (_keyboard == null && (_createFailed || !Create(keyHints)))
+        if (_keyboard == null && (_createFailed || !Create(hints)))
         {
             return;
         }
@@ -115,12 +127,14 @@ internal static class MenuKeyHints
 
         if (swatch.PaletteIndex >= 0)
         {
-            if (PaletteLibrary.Active.IsBuiltIn)
+            bool filled = BrushState.Palette[swatch.PaletteIndex].HasValue;
+            return (PaletteLibrary.Active.IsBuiltIn, filled) switch
             {
-                return BrushState.Palette[swatch.PaletteIndex].HasValue ? Target.LockedSlot : Target.None;
-            }
-
-            return BrushState.Palette[swatch.PaletteIndex].HasValue ? Target.FilledSlot : Target.EmptySlot;
+                (true, true) => Target.LockedSlot,
+                (true, false) => Target.None,
+                (false, true) => Target.FilledSlot,
+                _ => Target.EmptySlot,
+            };
         }
 
         if (swatch.DragColor?.Invoke() == null)
@@ -177,9 +191,9 @@ internal static class MenuKeyHints
         }
     }
 
-    private static bool Create(KeyHints keyHints)
+    private static bool Create(GameObject hints)
     {
-        Transform keyboard = keyHints.m_buildUIHints.transform.Find("Keyboard");
+        Transform keyboard = hints.transform.Find("Keyboard");
         Transform search = keyboard != null ? keyboard.Find("Search") : null;
         Transform close = keyboard != null ? keyboard.Find("Close") : null;
         Transform labelTemplate = search != null ? search.Find("Text") : null;
