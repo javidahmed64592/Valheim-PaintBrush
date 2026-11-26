@@ -10,7 +10,8 @@ Paint your buildings: a paint brush, taken out with one key, colours built piece
 
 - **Paint brush**: Press `O` to take out the brush, and again to put it away. It doesn't need to be crafted or carried.
 - **Paint and clear**: Paint any piece built by a player, or clear it back to vanilla. The piece shows the result while you aim at it, and a splash of paint lands where you click.
-- **Colour picker**: Choose any colour and how strongly it covers the piece in the brush menu, with a palette of saved colours.
+- **Colour picker**: Choose any colour and how strongly it covers the piece in the brush menu, with shades of it to pick from.
+- **Palettes**: Save colours by dragging them onto a palette, switch between palettes, build on the built-in ones, and share them with a code.
 - **Wood and stone stay wood and stone**: The paint keeps the grain and texture of every piece, and dark pieces can still be painted light.
 - **Pick colour**: Take the colour of any piece, painted or not.
 - **Connected pieces**: Paint or clear a whole building in one click with `Alt+Left-Click`.
@@ -29,13 +30,50 @@ Paint your buildings: a paint brush, taken out with one key, colours built piece
 Choose a colour with the colour square and hue bar, the R, G and B sliders, or by typing its numbers or hex code.
 **Strength** blends between the piece's own colour and the paint: low strength tints it, 100% covers it.
 
+The **Shades** row shows darker and lighter shades of the selected colour.
+**Recent** shows the colours you last painted with.
+
+### Palettes
+
+A palette holds 24 saved colours, and the slot matching your current colour has a gold outline.
+Step through your palettes with the arrows on either side of its name, or click the name to pick one from a list.
+
 | Key | Action |
 |---|---|
-| `Left-Click` a swatch | Use a palette or recent colour. |
+| `Left-Click` a swatch | Use a palette, shade or recent colour. |
+| Drag a colour onto a palette slot | Save it there. Any swatch can be dragged, including the current colour bar. |
+| Drag a palette colour onto another slot | Swap the two. |
+| Drag a palette colour off the palette | Remove it. |
 | `Shift+Left-Click` a palette slot | Save the current colour there. |
 | `Right-Click` a palette slot | Empty it. |
 
-Your colour, palette and recent colours are saved with your character.
+### Palette Menu
+
+The `⋯` button next to the palette's name opens the palette menu.
+
+![Palette Menu](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/preset_options.png)
+
+- **New** makes an empty palette and asks for its name.
+- **Rename** changes the name of one of your palettes.
+- **Duplicate** makes a copy of the palette in use, which you can then change.
+- **Copy code** puts the palette in the clipboard as one line of text, such as `PB1:Banners:7A1F1F,B5651D,...`, to send to a friend.
+- **Paste code** adds a palette from a code in the clipboard.
+- **Delete** removes one of your palettes. Click it twice, as a deleted palette can't be brought back.
+
+### Built-in Palettes
+
+The mod comes with four built-in palettes. They can't be changed, renamed or deleted, so to make one your own, **Duplicate** it and edit the copy, which has a free row for your own colours.
+
+| Banners | Earth & wood |
+|---|---|
+| ![Banners](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_banner.png) | ![Earth & wood](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_earth_wood.png) |
+| **Stone & metal** | **Vivid** |
+| ![Stone & metal](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_stone_metal.png) | ![Vivid](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_vivid.png) |
+
+### Saving
+
+Your palettes are shared by all your characters and saved in `BepInEx/config/javidahmed64592.paintbrush.palettes.json`, which can be edited by hand while the game is closed.
+Each character remembers which palette it used, and saves its own colour and recent colours.
 
 ## Painting
 

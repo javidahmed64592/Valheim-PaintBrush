@@ -11,5 +11,6 @@ internal static class KeyHints_UpdateHints_Patch
     private static void Postfix(KeyHints __instance)
     {
         BrushKeyHints.AfterUpdateHints(__instance);
+        MenuKeyHints.AfterUpdateHints(__instance);
     }
 }
