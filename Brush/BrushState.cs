@@ -13,8 +13,8 @@ namespace PaintBrush.Brush;
 /// </summary>
 internal static class BrushState
 {
-    public const int PaletteSize = 16;
-    public const int RecentSize = 8;
+    public const int PaletteSize = 24;
+    public const int RecentSize = 16;
 
     private const string ColourKey = "PaintBrush_Colour";
     private const string PaletteKey = "PaintBrush_Palette";

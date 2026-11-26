@@ -61,6 +61,18 @@ internal sealed class Swatch : MonoBehaviour, IPointerClickHandler, IPointerEnte
     public Image Image;
     public Outline Outline;
 
+    /// <summary>
+    /// Whether right-clicking this swatch does something, so it mustn't also close the build menu.
+    /// </summary>
+    public bool UsesRightClick;
+
+    private static Swatch _hovered;
+
+    /// <summary>
+    /// Whether the mouse is over a swatch that uses right-click.
+    /// </summary>
+    public static bool RightClickHovered => _hovered != null && _hovered.UsesRightClick && _hovered.isActiveAndEnabled;
+
     public void OnPointerClick(PointerEventData eventData)
     {
         Clicked?.Invoke(eventData.button);
@@ -68,6 +80,7 @@ internal sealed class Swatch : MonoBehaviour, IPointerClickHandler, IPointerEnte
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        _hovered = this;
         if (Outline != null)
         {
             Outline.effectColor = Hover;
@@ -76,6 +89,11 @@ internal sealed class Swatch : MonoBehaviour, IPointerClickHandler, IPointerEnte
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if (_hovered == this)
+        {
+            _hovered = null;
+        }
+
         if (Outline != null)
         {
             Outline.effectColor = Normal;
