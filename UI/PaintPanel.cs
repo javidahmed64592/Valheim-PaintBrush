@@ -21,7 +21,7 @@ namespace PaintBrush.UI;
 internal static class PaintPanel
 {
     private const float Width = 1004f;
-    private const float Height = 272f;
+    private const float Height = 316f;
 
     /// <summary>
     /// Space between the panel and the tools below it.
@@ -452,33 +452,34 @@ internal static class PaintPanel
     private static void CreatePreview()
     {
         const float x = 712f;
-        _vanilla = Raw(_root, "Vanilla", x, 0f, 140f, 88f, Texture2D.whiteTexture);
-        _painted = Raw(_root, "Painted", x + 150f, 0f, 140f, 88f, Texture2D.whiteTexture);
+        _vanilla = Raw(_root, "Vanilla", x, 0f, 140f, 64f, Texture2D.whiteTexture);
+        _painted = Raw(_root, "Painted", x + 150f, 0f, 140f, 64f, Texture2D.whiteTexture);
         Swatch.Style(_vanilla.gameObject.AddComponent<Outline>());
         Swatch.Style(_painted.gameObject.AddComponent<Outline>());
         _vanilla.raycastTarget = false;
         _painted.raycastTarget = false;
-        Label(_root, "$paintbrush_panel_vanilla", x, 92f, 140f, 20f, TextColor, 14).alignment = TextAnchor.MiddleCenter;
-        Label(_root, "$paintbrush_panel_painted", x + 150f, 92f, 140f, 20f, TextColor, 14).alignment = TextAnchor.MiddleCenter;
+        Label(_root, "$paintbrush_panel_vanilla", x, 68f, 140f, 20f, TextColor, 14).alignment = TextAnchor.MiddleCenter;
+        Label(_root, "$paintbrush_panel_painted", x + 150f, 68f, 140f, 20f, TextColor, 14).alignment = TextAnchor.MiddleCenter;
     }
 
     private static void CreateSwatches()
     {
         const float x = 712f;
-        _ = Label(_root, "$paintbrush_panel_palette", x, 116f, 290f, 20f, LabelColor, 16);
+        _ = Label(_root, "$paintbrush_panel_palette", x, 92f, 290f, 20f, LabelColor, 16);
         for (int i = 0; i < PaletteSwatches.Length; i++)
         {
             int index = i;
-            Swatch swatch = MakeSwatch(x + (i % 8 * 36f), 140f + (i / 8 * 36f));
+            Swatch swatch = MakeSwatch(x + (i % 8 * 36f), 116f + (i / 8 * 36f));
             swatch.Clicked = button => OnPaletteClick(index, button);
+            swatch.UsesRightClick = true;
             PaletteSwatches[i] = swatch;
         }
 
-        _ = Label(_root, "$paintbrush_panel_recent", x, 214f, 290f, 20f, LabelColor, 16);
+        _ = Label(_root, "$paintbrush_panel_recent", x, 226f, 290f, 20f, LabelColor, 16);
         for (int i = 0; i < RecentSwatches.Length; i++)
         {
             int index = i;
-            Swatch swatch = MakeSwatch(x + (i * 36f), 238f);
+            Swatch swatch = MakeSwatch(x + (i % 8 * 36f), 250f + (i / 8 * 36f));
             swatch.Clicked = button =>
             {
                 if (button == PointerEventData.InputButton.Left && index < BrushState.Recent.Count)
