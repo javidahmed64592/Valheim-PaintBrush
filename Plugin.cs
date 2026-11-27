@@ -30,10 +30,14 @@ public class PaintBrushPlugin : BaseUnityPlugin
         ConnectedPieces.BindConfig(Config);
         PaintHistory.BindConfig(Config);
         Translations.Load();
-        BrushPrefabs.Register();
 
         _harmony = new Harmony(PluginGUID);
-        _harmony.PatchAll();
+        if (!SafePatcher.PatchAll(_harmony, Config, Logger))
+        {
+            return;
+        }
+
+        BrushPrefabs.Register();
     }
 
     private void OnDestroy()
@@ -44,6 +48,11 @@ public class PaintBrushPlugin : BaseUnityPlugin
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822", Justification = "Unity message")]
     private void Update()
     {
+        if (!SafePatcher.ModEnabled)
+        {
+            return;
+        }
+
         Player player = Player.m_localPlayer;
         PhantomBrush.Update(player);
         BrushState.Sync(player);
