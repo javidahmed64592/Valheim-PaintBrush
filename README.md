@@ -107,6 +107,7 @@ Each keybind has a key and a `Modifier` (`None`, `Shift`, `Ctrl` or `Alt`), both
 - Works with Valheim Performance Optimizations: painted pieces are drawn normally instead of in its batches, so they show their paint.
 - Works alongside [BetterHammer](https://thunderstore.io/c/valheim/p/Aestelwen/BetterHammer/) and [BetterHoe](https://thunderstore.io/c/valheim/p/Aestelwen/BetterHoe/): `B` takes out the hammer, `N` the hoe and `O` the brush.
 - With BetterHammer 1.4.0 or later, paint goes wherever its pieces do: saved copies keep it, ghosts show it while moving or placing, and undo puts it back.
+- Works with [BetterCamera](https://thunderstore.io/c/valheim/p/Aestelwen/BetterCamera/)'s photo mode: take out the brush there, or press `O`, to paint from the free camera.
 - If a game update breaks part of the mod, that part turns off on its own and the log says which one; the rest keeps working.
 - This mod has not been tested with a gamepad, only with keyboard and mouse.
 
