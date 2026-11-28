@@ -18,7 +18,7 @@ internal static class PhantomBrush
 {
     private const string ButtonName = "PaintBrush_Equip";
 
-    private static ConfigEntry<KeyCode> _key;
+    private static KeyBinding _key;
     private static bool _knownRecipesRefreshed;
 
     internal static ItemDrop.ItemData Item { get; private set; }
@@ -27,13 +27,13 @@ internal static class PhantomBrush
 
     public static void BindConfig(ConfigFile config)
     {
-        _key = config.Bind("Keybinds", "Equip Paint Brush", KeyCode.O,
+        _key = KeyBinding.Bind(config, "Keybinds", "Equip Paint Brush", KeyCode.O, KeyModifier.None,
             "Puts the paint brush in your hand, or puts it away. Rebindable from the in-game controls menu.");
 
         InputManager.Instance.AddButton(PaintBrushPlugin.PluginGUID, new ButtonConfig
         {
             Name = ButtonName,
-            Config = _key,
+            Config = _key.KeyEntry,
         });
     }
 
@@ -59,7 +59,7 @@ internal static class PhantomBrush
             player.UpdateKnownRecipesList();
         }
 
-        if (!Keys.Blocked() && ZInput.GetButtonDown(ButtonQueryName))
+        if (!Keys.Blocked() && ZInput.GetButtonDown(ButtonQueryName) && _key.Accepts())
         {
             Toggle(player);
         }
