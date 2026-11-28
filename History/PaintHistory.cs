@@ -32,24 +32,21 @@ internal static class PaintHistory
     }
 
     private const int MaxSplashes = 12;
-
-    private static ConfigEntry<KeyboardShortcut> _undoKey;
-    private static ConfigEntry<KeyboardShortcut> _redoKey;
     private static ConfigEntry<int> _size;
 
     private static readonly LinkedList<List<Change>> Undos = [];
     private static readonly Stack<List<Change>> Redos = [];
 
-    internal static KeyboardShortcut UndoKey => _undoKey.Value;
-    internal static KeyboardShortcut RedoKey => _redoKey.Value;
+    internal static KeyBinding UndoKey { get; private set; }
+    internal static KeyBinding RedoKey { get; private set; }
     internal static bool CanUndo => Undos.Count > 0;
     internal static bool CanRedo => Redos.Count > 0;
 
     public static void BindConfig(ConfigFile config)
     {
-        _undoKey = config.Bind("Keybinds", "Undo", new KeyboardShortcut(KeyCode.Z, KeyCode.LeftControl),
+        UndoKey = KeyBinding.Bind(config, "Keybinds", "Undo", KeyCode.Z, KeyModifier.Ctrl,
             "Undoes the last painting or clearing done with the brush.");
-        _redoKey = config.Bind("Keybinds", "Redo", new KeyboardShortcut(KeyCode.Y, KeyCode.LeftControl),
+        RedoKey = KeyBinding.Bind(config, "Keybinds", "Redo", KeyCode.Y, KeyModifier.Ctrl,
             "Redoes the last painting or clearing you undid.");
         _size = config.Bind("Undo", "History Size", 50,
             new ConfigDescription("How many paint actions can be undone.", new AcceptableValueRange<int>(1, 500)));
@@ -89,11 +86,11 @@ internal static class PaintHistory
             return;
         }
 
-        if (Keys.IsDown(UndoKey))
+        if (UndoKey.IsDown())
         {
             Step(player, undo: true);
         }
-        else if (Keys.IsDown(RedoKey))
+        else if (RedoKey.IsDown())
         {
             Step(player, undo: false);
         }

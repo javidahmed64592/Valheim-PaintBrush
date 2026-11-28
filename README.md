@@ -64,7 +64,7 @@ The `⋯` button next to the palette's name opens the palette menu.
 
 ### Built-in Palettes
 
-The mod comes with four built-in palettes. They can't be changed, renamed or deleted, so to make one your own, **Duplicate** it and edit the copy, which has a free row for your own colours.
+The mod comes with four built-in palettes. They can't be changed, renamed or deleted, so to make one your own, **Duplicate** it and edit the copy.
 
 | Banners | Earth & wood |
 |---|---|
@@ -97,6 +97,7 @@ While the brush is out, the key hints show what each key does with the selected 
 ## Configuration
 
 Settings are in the BepInEx config file `javidahmed64592.paintbrush.cfg`: the keys, the largest size of painted textures (smaller saves memory, larger is sharper up close), the most pieces `Alt+Left-Click` paints at once, and how many actions can be undone.
+Each keybind has a key and a `Modifier` (`None`, `Shift`, `Ctrl` or `Alt`), both picked from a list, so combos like Shift + B can be bound.
 `DisabledFeatures` under `[Debug]` is for testing: it turns parts of the mod off by name. Leave it empty to play normally.
 
 ## Compatibility

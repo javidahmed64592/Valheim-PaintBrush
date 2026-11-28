@@ -1,6 +1,3 @@
-using BepInEx;
-using BepInEx.Configuration;
-
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -15,28 +12,6 @@ internal static class Keys
     public static bool Alt => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
 
     public static bool Shift => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-
-    /// <summary>
-    /// KeyboardShortcut.IsDown is false while any other key is held, so it would never fire while moving. This
-    /// only needs the main key pressed and the modifiers held.
-    /// </summary>
-    public static bool IsDown(KeyboardShortcut shortcut)
-    {
-        if (shortcut.MainKey == KeyCode.None || !UnityInput.Current.GetKeyDown(shortcut.MainKey))
-        {
-            return false;
-        }
-
-        foreach (KeyCode modifier in shortcut.Modifiers)
-        {
-            if (!UnityInput.Current.GetKey(modifier))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
 
     /// <summary>
     /// Whether a menu, chat, console or text field has the keyboard.
