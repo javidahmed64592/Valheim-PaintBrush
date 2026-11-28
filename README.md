@@ -68,7 +68,7 @@ The mod comes with four built-in palettes. They can't be changed, renamed or del
 
 | Banners | Earth & wood |
 |---|---|
-| ![Banners](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_banner.png) | ![Earth & wood](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_earth_wood.png) |
+| ![Banners](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_banners.png) | ![Earth & wood](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_earth_wood.png) |
 | **Stone & metal** | **Vivid** |
 | ![Stone & metal](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_stone_metal.png) | ![Vivid](https://github.com/javidahmed64592/Valheim-PaintBrush/raw/main/images/presets_vivid.png) |
 
