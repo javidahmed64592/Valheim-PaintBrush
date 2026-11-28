@@ -1,12 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.5.0
 
-- If a game update breaks part of the mod, only that part turns off and the rest keeps working: the key hints, the brush menu's title and the true-colour preview (no support tint on the piece you're painting) can each turn off while painting still works. The log says which part is off, in one line. If painting itself breaks, the whole mod turns off cleanly instead of throwing errors.
-- New `DisabledFeatures` setting under `[Debug]`, for testing: turns parts of the mod off by name.
-- Each built-in palette now fills all three rows, with similar colours next to each other.
-- Every keybind is now a key plus an optional modifier (`None`, `Shift`, `Ctrl` or `Alt`), both picked from a list in the config, so combos like Shift + B can be bound without typing them. Settings saved by an older version carry over.
-- With `debugmode` on, this mod's key combos no longer also do what their key does in debug mode, such as Ctrl+Z also toggling flying. A key on its own still does both.
+- **Built-in palettes** fill all three rows, with similar colours next to each other.
+- **Key combos:** every keybind is now a key plus an optional `Modifier` (`None`, `Shift`, `Ctrl` or `Alt`), both picked from a list in the config, so combos like Shift + B can be bound. Settings from older versions carry over.
+- With `debugmode` on, the mod's key combos no longer also trigger the game's debug keys, such as Ctrl+Z toggling flying.
+- **Safer after game updates:** if an update breaks part of the mod (the key hints, the brush menu's title or the true-colour preview), only that part turns off and the log says which, in one line; painting still works. If painting itself breaks, the whole mod turns off cleanly instead of throwing errors.
+- **Debug setting:** the new `DisabledFeatures` setting under `[Debug]` turns parts of the mod off by name, for testing.
 - Updated Jotunn to 2.30.3.
 
 ## 0.4.0

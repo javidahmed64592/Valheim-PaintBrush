@@ -1,7 +1,7 @@
 {
   "name": "PaintBrush",
   "description": "Paint your buildings: a paint brush, taken out with one key, colours built pieces in any shade and strength, and clears them back to vanilla. Only players with the mod see the paint.",
-  "version_number": "0.4.0",
+  "version_number": "0.5.0",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2360",
     "ValheimModding-Jotunn-2.30.3"
