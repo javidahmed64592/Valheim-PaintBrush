@@ -59,10 +59,22 @@ internal static class PhantomBrush
             player.UpdateKnownRecipesList();
         }
 
-        if (!Keys.Blocked() && ZInput.GetButtonDown(ButtonQueryName) && _key.Accepts())
+        if (!Keys.Blocked() && KeyDown())
         {
             Toggle(player);
         }
+    }
+
+    /// <summary>
+    /// The equip key. Jotunn only reports its buttons while the player takes input, which the game stops while the
+    /// camera flies free (such as in BetterCamera's photo mode, which can use the brush), so then the key is read
+    /// directly.
+    /// </summary>
+    private static bool KeyDown()
+    {
+        return GameCamera.InFreeFly()
+            ? _key.IsDown()
+            : ZInput.GetButtonDown(ButtonQueryName) && _key.Accepts();
     }
 
     private static void Toggle(Player player)

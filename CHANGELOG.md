@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The `O` key takes out the brush while the camera flies free too, so it works in BetterCamera's photo mode, which can use the brush.
+
 ## 0.5.0
 
 - **Built-in palettes** fill all three rows, with similar colours next to each other.
