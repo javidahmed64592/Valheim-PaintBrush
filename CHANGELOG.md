@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- If a game update breaks part of the mod, only that part turns off and the rest keeps working: the key hints, the brush menu's title and the true-colour preview (no support tint on the piece you're painting) can each turn off while painting still works. The log says which part is off, in one line. If painting itself breaks, the whole mod turns off cleanly instead of throwing errors.
+- New `DisabledFeatures` setting under `[Debug]`, for testing: turns parts of the mod off by name.
+- Updated Jotunn to 2.30.3.
+
 ## 0.4.0
 
 - A padlock next to the palette's name locks one of your palettes against accidental changes. Changing a locked palette, including renaming or deleting it, asks you to unlock it first.
