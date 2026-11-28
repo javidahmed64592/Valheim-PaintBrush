@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.5.1
 
-- The `O` key takes out the brush while the camera flies free too, so it works in BetterCamera's photo mode, which can use the brush.
+- `O` takes out the brush in BetterCamera's photo mode too, which can now paint from the free camera.
 
 ## 0.5.0
 
